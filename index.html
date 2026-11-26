@@ -87,7 +87,7 @@ h2{font-size:19px;font-weight:900;color:#223a6b}
 body.ended #missionCard,body.ended #mapCard,body.ended #goCard,body.ended #photoCard,body.ended #yaeCard,body.ended #runCard{filter:grayscale(1);opacity:.5;pointer-events:none;user-select:none}
 #tapBar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}#tapBar.hide{display:none}#tapBar .tt{flex:1 1 100%}#tapBar button{min-height:40px;font-size:14px;padding:0 12px}
 #rankCard>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:20px;font-weight:900;margin:0}#rankCard>summary::-webkit-details-marker{display:none}#rankCard>summary::after{content:'▼ たたむ';font-size:13px;font-weight:700;color:#5a6272}#rankCard:not([open])>summary::after{content:'▶ ひらく'}
-#profBox{display:none!important}.adm label{display:block;margin-top:8px}.adm select,.adm input[type=text],.adm input:not([type]){width:100%;font:inherit;padding:10px;border:2px solid var(--line);border-radius:10px;margin-top:4px;background:#fff}.adm .row{display:flex;gap:8px;margin-top:8px}.adm .row .btn{flex:1;min-height:44px;font-size:15px}.adm .lnk{word-break:break-all;background:#f3f6fb;border-radius:10px;padding:8px 10px;margin-top:6px;font-size:14px}
+#hShop{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;font-size:clamp(14px,4.4vw,18px)}#profBox{display:none!important}.adm label{display:block;margin-top:8px}.adm select,.adm input[type=text],.adm input:not([type]){width:100%;font:inherit;padding:10px;border:2px solid var(--line);border-radius:10px;margin-top:4px;background:#fff}.adm .row{display:flex;gap:8px;margin-top:8px}.adm .row .btn{flex:1;min-height:44px;font-size:15px}.adm .lnk{word-break:break-all;background:#f3f6fb;border-radius:10px;padding:8px 10px;margin-top:6px;font-size:14px}
 </style></head><body>
 <header><img src="icon-64.png" alt="" width="34" height="34" style="border-radius:8px;background:#fff"><b id="hShop">Rally GP</b><span class="tag">ショップ</span><span id="hPlan" class="tag" style="margin-left:auto"></span></header>
 <div id="toast"></div>
@@ -216,7 +216,7 @@ body.ended #missionCard,body.ended #mapCard,body.ended #goCard,body.ended #photo
     <div id="acctBody"></div>
   </div>
 
-  <div class="card" style="font-size:13px;text-align:center;line-height:2"><a href="https://rally-gp.vercel.app/terms.html" target="_blank" rel="noopener">利用規約</a>　|　<a href="https://rally-gp.vercel.app/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a><div style="color:var(--m)">運営：一般社団法人地球体験機構</div></div>
+  <div class="card" style="font-size:13px;text-align:center;line-height:2"><a href="terms.html">利用規約</a>　|　<a href="privacy.html">プライバシーポリシー</a><div style="color:var(--m)">運営：一般社団法人地球体験機構</div></div>
 
   <div id="resetCard" class="card hide"><button id="reset" class="btn r" style="width:100%">今日の記録をリセットする</button></div>
 
@@ -302,7 +302,7 @@ const nReg = k => regs(k).length;
 const anyReg = () => nReg('ss') + nReg('view') + nReg('historic') > 0;
 const target = () => r1(regs('ss').reduce((a, i) => a + ssMax(course.ss[i]), 0) + (nReg('view') + nReg('historic')) * PT);
 const total = () => r1(day.ss.reduce((s, x) => s + (x ? x.pts : 0), 0) + day.view.filter(Boolean).length * PT + day.historic.filter(Boolean).length * PT + day.yae.reduce((s, n) => s + Math.min(n, YAE_MAX), 0) * YAE_PT);
-const allDone = () => anyReg() && regs('ss').every(i => day.ss[i]) && regs('view').every(i => day.view[i]) && regs('historic').every(i => day.historic[i]);
+const allDone = () => anyReg() && regs('ss').every(i => day.ss[i] && !day.ss[i].aborted) && regs('view').every(i => day.view[i]) && regs('historic').every(i => day.historic[i]);
 function remainTxt() { const o = []; regs('ss').forEach(i => { if (!day.ss[i]) o.push('SS' + (i + 1)); }); ['view', 'historic'].forEach(k => regs(k).forEach(i => { if (!day[k][i]) o.push(LAB[k] + (i + 1)); })); return o.join('・') || 'なし'; }
 function toast(t) { const d = $('toast'); d.textContent = t; d.style.display = 'block'; try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) { /* noop */ } clearTimeout(d._t); d._t = setTimeout(() => { d.style.display = 'none'; }, 7000); }
 $('toast').onclick = () => { $('toast').style.display = 'none'; };
@@ -500,10 +500,51 @@ function nextPop() {
       return cv;
     }
 
+/* ---------- ショップ版の完走証明（黒と金・ラリープレート。プレートの番号は、その月の数字） ---------- */
+const certPlate = new Image(); certPlate.src = 'cert-plate.png';
+const JPF = '"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic","IPAGothic",sans-serif';
+const NUMF = '"Avenir Next Condensed","Anton","Arial Narrow",Impact,sans-serif';
+function fitText(x, t, maxW, size, weight, fam) { let s = size; do { x.font = weight + ' ' + s + 'px ' + (fam || JPF); s -= 2; } while (x.measureText(t).width > maxW && s > 18); }
+function goldGrad(x, y0, y1) { const g = x.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, '#fff1b8'); g.addColorStop(.45, '#e2b84c'); g.addColorStop(1, '#a87a1e'); return g; }
+function rrect(x, a, b, w, h, r) { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); }
+function drawShopCert(c) {
+  const W = 1080, H = 1620, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const x = cv.getContext('2d');
+  const bg = x.createRadialGradient(W / 2, 520, 80, W / 2, 760, 1000); bg.addColorStop(0, '#2a2418'); bg.addColorStop(.55, '#0f0e0b'); bg.addColorStop(1, '#000'); x.fillStyle = bg; x.fillRect(0, 0, W, H);
+  /* 上下のチェッカー（黒と金） */
+  const ck = y => { for (let i = 0; i < 36; i++) for (let j = 0; j < 2; j++) { x.fillStyle = (i + j) % 2 ? '#0a0a0a' : '#d4a73a'; x.fillRect(i * 30, y + j * 22, 30, 22); } };
+  ck(0); ck(H - 44);
+  /* 金の枠 */
+  x.strokeStyle = '#d4a73a'; x.lineWidth = 4; rrect(x, 34, 74, W - 68, H - 148, 28); x.stroke();
+  x.strokeStyle = 'rgba(212,167,58,.45)'; x.lineWidth = 2; rrect(x, 48, 88, W - 96, H - 176, 20); x.stroke();
+  /* ラリープレート＋その月の番号 */
+  const pw = 680, px = (W - pw) / 2, py = 112;
+  if (certPlate.complete && certPlate.naturalWidth) {
+    const s = pw / certPlate.naturalWidth; x.drawImage(certPlate, px, py, pw, certPlate.naturalHeight * s);
+    const bx = px + 348 * s, by = py + 124 * s, bw = 248 * s, bh = 180 * s;
+    x.fillStyle = '#0c0c0c'; x.textAlign = 'center'; x.textBaseline = 'alphabetic'; fitText(x, c.num, bw * .8, Math.round(bh * .8), '900', NUMF); x.fillText(c.num, bx + bw / 2, by + bh * .84);
+  }
+  x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+  /* 見出し */
+  x.fillStyle = '#e2b84c'; x.font = '800 40px ' + JPF; x.fillText('F I N I S H E R', W / 2, 740);
+  x.fillStyle = goldGrad(x, 760, 880); x.font = '900 124px ' + JPF; x.fillText('完走証明', W / 2, 872);
+  x.fillStyle = '#fff'; fitText(x, c.shop, 900, 58, '800'); x.fillText(c.shop, W / 2, 962);
+  if (c.mission) { x.fillStyle = '#d8c89a'; fitText(x, c.mission, 900, 40, '700'); x.fillText(c.mission, W / 2, 1020); }
+  /* カード（黒に金の縁） */
+  const cx = 100, cy = 1066, cw = W - 200, ch = 380;
+  x.fillStyle = 'rgba(20,18,14,.92)'; rrect(x, cx, cy, cw, ch, 30); x.fill(); x.strokeStyle = '#d4a73a'; x.lineWidth = 3; x.stroke();
+  const row = (k, v, y, big) => { x.textAlign = 'left'; x.fillStyle = '#b9a46a'; x.font = '700 32px ' + JPF; x.fillText(k, cx + 54, y); x.fillStyle = big ? goldGrad(x, y - 60, y + 6) : '#fff'; fitText(x, v, cw - 300, big ? 66 : 46, '900'); x.fillText(v, cx + 250, y + (big ? 6 : 0)); };
+  row('ライダー', c.nickname, cy + 88); row('車両', c.vehicle || '—', cy + 172); row('得点', c.points + ' / ' + c.target + ' 点', cy + 266, true); row('完走日', c.dateTxt, cy + 344);
+  x.strokeStyle = 'rgba(212,167,58,.25)'; x.lineWidth = 2; [cy + 118, cy + 202, cy + 294].forEach(y => { x.beginPath(); x.moveTo(cx + 40, y); x.lineTo(cx + cw - 40, y); x.stroke(); });
+  /* 下の行 */
+  x.textAlign = 'center'; x.fillStyle = '#b9a46a'; x.font = '700 28px ' + JPF; x.fillText('No. ' + c.cert_no + '　｜　Rally GP ショップ', W / 2, H - 100);
+  return cv;
+}
+
 function showCertificate() {
   const nick = ($('nick').value || '').trim() || 'ライダー', veh = ($('veh').value || '').trim();
-  const c = { event_name: 'RALLY GP', nickname: nick, vehicle: veh, points: total(), event_day: day.d, cert_no: 'GP-' + day.d.replace(/-/g, '') };
-  const cv = drawCertificate(c), url = cv.toDataURL('image/png');
+  const dd = day.d.split('-').map(Number), m = SI && SI.mission;
+  const c = { num: String(dd[1]).padStart(2, '0'), shop: ($('hShop').textContent || 'Rally GP ショップ').trim(), mission: m ? (m.title || '') : '', nickname: nick, vehicle: veh, points: r1(total()), target: r1(target()), dateTxt: dd[0] + '年' + dd[1] + '月' + dd[2] + '日', cert_no: (SHOP || 'GP').toUpperCase() + '-' + day.d.replace(/-/g, '') + (day.attemptId ? '-' + day.attemptId : '') };
+  const cv = drawShopCert(c), url = cv.toDataURL('image/png');
   const old = $('certPop'); if (old) old.remove();
   const pop = document.createElement('div'); pop.id = 'certPop'; pop.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.86);overflow:auto;padding:16px;box-sizing:border-box';
   const w = document.createElement('div'); w.style.cssText = 'max-width:460px;margin:0 auto';
@@ -511,7 +552,7 @@ function showCertificate() {
   const img = document.createElement('img'); img.src = url; img.alt = '完走証明'; img.style.cssText = 'width:100%;max-width:420px;border-radius:12px;display:block;margin:0 auto;-webkit-touch-callout:default';
   const sv = document.createElement('button'); sv.type = 'button'; sv.className = 'btn g'; sv.style.cssText = 'width:100%;margin-top:12px'; sv.textContent = '⬇ 画像を保存';
   sv.onclick = () => cv.toBlob(async blob => {
-    if (!blob) return; const file = new File([blob], 'rally-gp-' + day.d + '.png', { type: 'image/png' });
+    if (!blob) return; const file = new File([blob], 'rally-gp-shop-' + day.d + '.png', { type: 'image/png' });
     try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   }, 'image/png');
@@ -821,7 +862,7 @@ function renderStrip() {
   let h = '';
   ['ss', 'view', 'historic'].forEach(k => regs(k).forEach(i => {
     const done = k === 'ss' ? !!day.ss[i] : day[k][i];
-    const isRun = k === 'ss' && run && run.i === i; const n = isRun ? '⏱ 計測中' : done ? '✅ ' + (k === 'ss' ? day.ss[i].pts : PT) + '点' : (k === 'ss' ? '設定 ' + fmtS(setSec(course.ss[i])) + '<br>満点 ' + ssMax(course.ss[i]) + '点' : '目標 ' + PT + '点');
+    const isRun = k === 'ss' && run && run.i === i; const n = isRun ? '⏱ 計測中' : (k === 'ss' && done && day.ss[i].aborted) ? '✖ やめた 0点' : done ? '✅ ' + (k === 'ss' ? day.ss[i].pts : PT) + '点' : (k === 'ss' ? '設定 ' + fmtS(setSec(course.ss[i])) + '<br>満点 ' + ssMax(course.ss[i]) + '点' : '目標 ' + PT + '点');
     h += '<button class="m k-' + k + (done ? ' done' : '') + (isRun ? ' run' : '') + (focus && focus.k === k && focus.i === i ? ' sel' : '') + '" data-k="' + k + '" data-i="' + i + '">' + ({ ss: '🏎 ', view: '📸 ', historic: '🚩 ' })[k] + (i + 1) + '<br>' + LAB[k] + '<span class="n">' + n + '</span></button>';
   }));
   if (course.goal) {
@@ -837,7 +878,7 @@ function renderStrip() {
 }
 function renderRes() {
   const rows = [];
-  regs('ss').forEach(i => { const s = day.ss[i]; if (s) rows.push(['SS' + (i + 1) + '　実走 ' + fmtS(s.actual) + ' ／ 設定 ' + fmtS(s.set) + ' ／ 誤差 ' + fmtErr(s.err) + ' ／ 満点 ' + (s.max != null ? s.max : (course.ss[i] ? ssMax(course.ss[i]) : '—')) + '点', s.pts + '点']); const y = Math.min(day.yae[i], YAE_MAX); if (y) rows.push(['SS' + (i + 1) + ' ヤエー ' + y + '回', y * YAE_PT + '点']); });
+  regs('ss').forEach(i => { const s = day.ss[i]; if (s && s.aborted) { rows.push(['SS' + (i + 1) + '　途中でやめました', '0点']); return; } if (s) rows.push(['SS' + (i + 1) + '　実走 ' + fmtS(s.actual) + ' ／ 設定 ' + fmtS(s.set) + ' ／ 誤差 ' + fmtErr(s.err) + ' ／ 満点 ' + (s.max != null ? s.max : (course.ss[i] ? ssMax(course.ss[i]) : '—')) + '点', s.pts + '点']); const y = Math.min(day.yae[i], YAE_MAX); if (y) rows.push(['SS' + (i + 1) + ' ヤエー ' + y + '回', y * YAE_PT + '点']); });
   ['view', 'historic'].forEach(k => regs(k).forEach(i => { if (day[k][i]) rows.push([LAB[k] + (i + 1), PT + '点']); }));
   if (day.fin) rows.push([day.complete ? '🎉 完走' : '🏁 ゴール', '']);
   $('resCard').classList.toggle('hide', !rows.length);
@@ -888,7 +929,7 @@ function renderFin() {
 }
 $('certBtn').onclick = showCertificate;
 function goalPopup() {
-  const lines = []; regs('ss').forEach(i => lines.push('SS' + (i + 1) + '　' + (day.ss[i] ? day.ss[i].pts : 0) + '点'));
+  const lines = []; regs('ss').forEach(i => lines.push('SS' + (i + 1) + '　' + (day.ss[i] ? day.ss[i].pts : 0) + '点' + (day.ss[i] && day.ss[i].aborted ? '（やめた）' : '')));
   const v = day.view.filter(Boolean).length, h = day.historic.filter(Boolean).length, y = day.yae.reduce((s, n) => s + Math.min(n, YAE_MAX), 0);
   if (nReg('view')) lines.push('フォトポイント ' + v + '箇所　' + v * PT + '点'); if (nReg('historic')) lines.push('チェックポイント ' + h + '箇所　' + h * PT + '点'); lines.push('ヤエー（ボーナスポイント） ' + y + '回　' + y * YAE_PT + '点');
   pop(day.complete ? '🎉 完走！おめでとうございます' : '🏁 ゴールしました', total(), lines.join('\n') + (day.complete ? '' : '\n\n※ のこりのポイントがあるため、完走証明は発行されません\n（のこり：' + remainTxt() + '）'), true, true, target(), day.complete);
@@ -1004,7 +1045,7 @@ function runTick() {
     if (runCounting() || run.excl >= MAX_EXCL) { run.acc += dt; run.streak += dt; if (run.jam && run.streak >= JAM_CALM) { run.jam = false; run.stops = []; } }
     else { run.excl += dt; run.streak = 0; }
   }
-  runUi();
+  runUi(); if (!run.sv || now - run.sv > 3000) { run.sv = now; runSave(); }
 }
 $('goBtn').onclick = () => {
   if (run || goIdx === null || !day.started) return; const i = goIdx, s = course.ss[i]; if (!fix || Date.now() - lastFixAt > 15000) { toast('現在地を測っています。少し待ってからもう一度押してください。'); return; }
@@ -1018,10 +1059,27 @@ $('goBtn').onclick = () => {
 };
 function finishRun() {
   const i = run.i, s = course.ss[i], actual = run.acc / 1000, err = actual - setSec(s), pts = ssPts(s, err), exclS = Math.round(run.excl / 1000);
-  clearInterval(tick); run = null; focus = null; $('runCard').classList.add('hide'); day.ss[i] = { actual, err, pts, set: setSec(s), max: ssMax(s), excl: exclS }; day.yaeOpen = i; saveDay();
+  clearInterval(tick); run = null; focus = null; $('runCard').classList.add('hide'); day.ss[i] = { actual, err, pts, set: setSec(s), max: ssMax(s), excl: exclS }; day.yaeOpen = i; delete day.run; saveDay();
   renderAll(); setTimeout(() => { try { $('yaeCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* noop */ } }, 150); pop('SS' + (i + 1) + ' ゴール', pts, '実走 ' + fmtS(actual) + '　設定 ' + fmtS(setSec(s)) + '　誤差 ' + fmtErr(err) + '　満点 ' + ssMax(s) + '点');
 }
-$('runCancel').onclick = () => { clearInterval(tick); run = null; focus = null; $('runCard').classList.add('hide'); renderAll(); };
+$('runCancel').onclick = () => {
+  if (!run) return;
+  if (!ADMIN) {
+    if (!confirm('このSSをやめると、SS' + (run.i + 1) + 'は0点で確定します（走り直しはできません）。やめますか？')) return;
+    const i = run.i, s = course.ss[i]; day.ss[i] = { actual: 0, err: 0, pts: 0, set: setSec(s), max: ssMax(s), excl: 0, aborted: true };
+  }
+  clearInterval(tick); run = null; focus = null; delete day.run; saveDay(); $('runCard').classList.add('hide'); renderAll();
+  if (!ADMIN) toast('SSをやめました（0点）');
+};
+/* 計測中の状態を、数秒ごとに端末に保存（アプリが閉じても、開き直すと続きから。閉じていた間も時間は数えます） */
+function runSave() { if (!run || !day) return; day.run = { i: run.i, from: run.from, t0: run.t0, acc: run.acc, excl: run.excl, at: Date.now() }; saveDay(); }
+function resumeRun() {
+  const r = day && day.run; if (run || !r) return;
+  if (day.fin || day.ss[r.i] || !course.ss[r.i]) { delete day.run; saveDay(); return; }
+  run = newRun(r.i, r.from); run.t0 = r.t0; run.acc = r.acc + Math.max(0, Date.now() - r.at); run.excl = r.excl; run.last = Date.now();
+  $('runTitle').textContent = 'SS' + (r.i + 1); $('runCard').classList.remove('hide'); clearInterval(tick); tick = setInterval(runTick, 250); focus = { k: 'ss', i: r.i }; runUi(); renderAll();
+  toast('⏱ SS' + (r.i + 1) + 'の計測を、続きから再開しました');
+}
 $('reset').onclick = () => {
   const used = day.ss.some(Boolean) || day.view.some(Boolean) || day.historic.some(Boolean) || day.goal || day.fin;
   if (!premium && used) { showUpsell('無料お試しは、1日1回の記録までです。今日の記録をやり直すには、プレミアムが必要です。'); return; }
@@ -1061,7 +1119,7 @@ function renderAcct() {
   let h = '';
   if (!sb) h = '<div class="muted">アカウント機能を読み込めませんでした。通信を確認して、ページを開き直してください。</div>';
   else if (!user) {
-    h += '<div class="muted">' + (ADMIN ? '管理者のメールアドレスでログインしてください。' : 'ミッションに参加するには、メールでログインします。一度ログインすれば、次の月もそのまま参加できます。') + '</div>';
+    h += '<div class="muted">' + (ADMIN ? '管理者のメールアドレスでログインしてください。' : 'ミッションに参加するには、メールでログインします。一度ログインすれば、次の月もそのまま参加できます。ログインすると、<a href="terms.html">利用規約</a>と<a href="privacy.html">プライバシーポリシー</a>に同意したものとします。') + '</div>';
     if (acctStep === 'mail') h += '<input id="aMail" type="email" inputmode="email" autocomplete="email" placeholder="メールアドレス" value="' + esc(acctMail) + '"><div class="row"><button id="aSend" class="btn g" style="flex:1">ログイン用のメールを送る</button></div>';
     else h += '<div style="margin-top:8px;font-weight:700">' + esc(acctMail) + ' にログイン用のメールを送りました。メールに書かれた数字のコードを、下の欄に入れてください。</div><input id="aCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="メールの数字コード" style="margin-top:8px;font-size:22px;letter-spacing:4px;text-align:center"><div class="row"><button id="aVerify" class="btn g" style="flex:1">コードでログインする</button></div><div class="muted" style="margin-top:6px">ブラウザで開くときは、メールの「ログインする」ボタンでもログインできます。</div><div class="muted">届かないときは、迷惑メールのフォルダも見てください。</div><div class="row"><button id="aBack" class="btn" style="flex:1">メールアドレスを入れ直す</button></div>';
   } else {
@@ -1126,13 +1184,14 @@ async function loadShop() {
   if (r.member) { $('nick').value = r.member.nickname || ''; $('veh').value = r.member.vehicle || ''; }
   const mid = r.mission ? r.mission.id : null;
   if (!run) { if (day.mid && day.mid !== mid) { day = newDay(); saveDay(); focus = null; } applyCourse(r.mission ? r.mission.course : null); }
+  resumeRun();
   if (day.fin && day.attemptId && !day.sent) sendAttempt();
   renderAcct(); renderAll(); loadRank();
 }
 function renderShopUi() {
   if (!$('startInfo') || !day) return;
   const m = SI && SI.mission;
-  $('mTitle').textContent = ADMIN ? '🛠 テスト走行（記録は送られません）' : (m ? '🎯 ' + (m.title || ymTxt(curYm()) + 'のミッション') : '');
+  $('mTitle').textContent = ADMIN ? '🛠 テスト走行（記録は送られません）' : (m ? (m.preview ? '🔒【非公開・管理者だけ】' : '🎯 ') + (m.title || ymTxt(curYm()) + 'のミッション') : '');
   if (ADMIN) { $('startInfo').textContent = '管理者のテスト走行です（記録は送られません）'; return; }
   const left = m ? Math.max(0, m.max_attempts - (SI.attempts_used || 0)) : 0;
   let t = m ? '今月の挑戦　のこり ' + left + ' / ' + m.max_attempts + ' 回' + (SI.best != null ? '（今月のベスト ' + r1(Number(SI.best)) + ' 点）' : '') : '';
@@ -1479,7 +1538,7 @@ $('movGpx').onchange = async ev => {
 $('movCard').addEventListener('toggle', () => { if ($('movCard').open) movRefresh(); });
 
 /* ---------- 起動 ---------- */
-loadDay(); initMap(); shopBoot(); renderAcct(); renderAll(); startWatch(); loadShop();
+loadDay(); initMap(); shopBoot(); renderAcct(); renderAll(); startWatch(); loadShop(); if (ADMIN) resumeRun();
 if (ADMIN && !anyReg() && !course.goal) setTimeout(() => toast('ショップと月を選んで「この月のミッションを開く」を押すか、下の「コースをつくる」で新しく作りましょう'), 600);
 })();
 </script>
