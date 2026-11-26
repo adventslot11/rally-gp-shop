@@ -1,20 +1,1486 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex">
-<title>Rally GP ショップ版</title>
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<title>Rally GP ショップ</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="manifest.webmanifest"><meta name="apple-mobile-web-app-title" content="Rally GP ショップ"><meta name="theme-color" content="#315c9e">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: -apple-system, "Hiragino Sans", sans-serif; background: linear-gradient(135deg, #1f3a8a, #6a3fd0); color: #fff; text-align: center; }
-  h1 { font-size: 28px; margin: 0 0 8px; }
-  p { margin: 0; opacity: .85; }
-</style>
-</head>
-<body>
-  <div>
-    <h1>🏁 Rally GP ショップ版</h1>
-    <p>ただいま準備中です。</p>
+:root{--g:#1b7f3b;--b:#315c9e;--bg:#f3f6fb;--t:#1c2430;--m:#5b6676;--line:#dde4f0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--t);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;padding-bottom:0}
+header{background:var(--b);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;display:flex;align-items:center;gap:8px}
+header b{font-size:18px}.tag{background:#ffffff33;border-radius:999px;padding:2px 10px;font-size:12px}
+main{padding:12px 12px 0;max-width:640px;margin:0 auto}main>.card:last-of-type{margin-bottom:8px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+h2{margin:0 0 8px;font-size:18px}.muted{color:var(--m);font-size:14px}
+button{font:inherit}
+.btn{min-height:52px;padding:0 16px;border-radius:12px;border:2px solid var(--b);background:#fff;color:var(--b);font-weight:800;font-size:17px}
+.btn.g{background:var(--g);border-color:var(--g);color:#fff}.btn.r{border-color:#c0392b;color:#c0392b}.btn:disabled{opacity:.45}
+.score{font-size:42px;font-weight:900;color:var(--g);line-height:1.1}.score small{font-size:20px;color:var(--m);font-weight:700}
+.strip{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.m{border:2px solid var(--b);background:#fff;border-radius:12px;padding:8px 2px;text-align:center;font-weight:800;font-size:15px;min-height:72px;color:var(--b)}.m.wide{grid-column:1/-1;min-height:64px;font-size:17px}.m.sel{box-shadow:0 0 0 3px #f2b23a}
+.m .n{display:block;font-size:12px;margin-top:2px;color:var(--m);font-weight:700}
+.m.done{background:#e8e9ec;border-color:#b5b9c2;color:#8a909b}.m.done .n{color:#8a909b}.m.off{border-style:dashed}
+.step{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.step:first-of-type{border-top:0}
+.step .nm{flex:1;font-weight:800}.step .st{font-size:14px;color:var(--m);font-weight:700}.step .st.ok{color:var(--g)}
+@keyframes tl{0%,100%{box-shadow:0 0 0 0 #ff3b30aa}50%{box-shadow:0 0 0 6px #ff3b3000}}.m.run{animation:tl 1.2s ease-in-out infinite;outline:3px solid #ffd400;outline-offset:1px}.m.run .n{color:#fff200;font-weight:900}
+body.hasgo #mapWrap{height:38vh;min-height:220px}.runtop{display:flex;align-items:center;gap:8px}.runtop h2{margin:0;font-size:20px}.runtop .blink{flex:1;font-size:14px;margin:0}.runtop .btn{min-height:38px;padding:0 14px;font-size:14px;width:auto}.runrow{display:flex;align-items:center;gap:10px;margin-top:2px}.runrow .timer{font-size:40px;min-width:120px;text-align:left}.runside{flex:1;min-width:0}#runSet{font-size:15px;font-weight:800;color:#1f3a63}#runInfo{font-size:12px;text-align:left;line-height:1.35}.runnote{margin-top:4px}.runnote summary{font-size:12px;font-weight:700;color:#6b4a00;cursor:pointer}.runnote .muted{margin:6px 0 0!important}body.running #runCard{padding:8px 12px}body.running #mapWrap{height:calc(100svh - 300px);min-height:260px}#mapWrap{position:relative;height:56vh;min-height:300px;border-radius:12px;overflow:hidden}#map{width:100%;height:100%;border-radius:12px}#mapWrap.hu #map{position:absolute;border-radius:0;will-change:transform}#mapWrap.hu .leaflet-control-container{display:none}#mapWrap.hu .leaflet-marker-icon>div{transform:rotate(var(--hdg,0deg));transform-origin:14px 34px}#huUi{display:none}#mapWrap.hu #huUi{display:block}#huN{position:absolute;left:8px;top:8px;width:34px;height:34px;border-radius:50%;background:#fffd;border:2px solid #1768c8;color:#c0392b;font-weight:900;font-size:14px;line-height:30px;text-align:center;z-index:900;pointer-events:none}.huZ{position:absolute;right:8px;width:44px;height:44px;border-radius:10px;border:2px solid #1768c8;background:#fffe;color:#1768c8;font-size:26px;font-weight:900;line-height:38px;z-index:900;padding:0}#huAttr{position:absolute;left:4px;bottom:2px;font-size:10px;color:#333;background:#fffa;padding:0 4px;border-radius:4px;z-index:900;pointer-events:none}
+#tapBar{position:sticky;top:0;z-index:900;background:#fff6dd;border:2px solid #e3ab2f;border-radius:12px;padding:10px 12px;font-weight:800;margin-bottom:10px}
+.hide{display:none!important}
+#toast{position:fixed;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top));z-index:3000;background:var(--g);color:#fff;border-radius:16px;padding:16px;font-size:20px;font-weight:800;text-align:center;box-shadow:0 6px 20px #0008;display:none;line-height:1.5}
+.timer{font-size:42px;font-weight:900;text-align:center;font-variant-numeric:tabular-nums;color:#d63a3a;line-height:1.1}.timer small{font-size:16px;color:var(--m)}.blink.paused{animation:none;color:#8a909b}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.25}}.blink{animation:bl 1.6s ease-in-out infinite;text-align:center;font-size:20px;font-weight:800;color:#d63a3a}
+.ov{position:fixed;inset:0;background:#000a;z-index:4000;display:flex;align-items:center;justify-content:center;padding:20px}
+.ov .box{background:#fff;border-radius:20px;padding:22px 18px;width:100%;max-width:420px;text-align:center;box-shadow:0 10px 40px #0008}
+.ov h3{margin:0 0 8px;font-size:22px}.ov .big{font-size:34px;font-weight:900;color:var(--g);margin:8px 0}.ov .ln{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding:6px 4px;text-align:left}
+.res{border-top:1px solid var(--line);padding:6px 0;display:flex;justify-content:space-between;gap:8px}.res b{white-space:nowrap}
+.yb{width:168px;height:168px;border-radius:50%;border:4px solid #315c9e;background:radial-gradient(circle at 50% 35%,#fff,#dbe6f7);padding:10px;box-shadow:0 6px 0 #315c9e,0 10px 18px #0004;touch-action:manipulation}
+.yb:active:not(:disabled){transform:translateY(5px);box-shadow:0 1px 0 #315c9e,0 3px 6px #0004}.yb:disabled{filter:grayscale(1);opacity:.45}.yb svg{width:100%;height:100%;display:block;pointer-events:none}
+#yWrap{position:relative;display:inline-block}.yp{position:absolute;left:50%;top:6px;font-weight:800;font-size:28px;color:#e0a100;text-shadow:0 1px 0 #fff;pointer-events:none;animation:yu .8s ease-out forwards}
+@keyframes yu{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-70px)}}
+
+.reward-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(7,15,35,.72);backdrop-filter:blur(5px);animation:rewardFade .25s ease-out}.reward-overlay[hidden]{display:none!important}.reward-card{position:relative;width:min(100%,390px);overflow:hidden;text-align:center;color:#fff;background:linear-gradient(145deg,#203963,#101c36);border:2px solid #eec75c;border-radius:25px;padding:32px 20px 23px;box-shadow:0 18px 60px #0008,0 0 32px #f8d45c44;animation:rewardPop .45s cubic-bezier(.2,1.5,.4,1)}.reward-stars{font-size:28px;letter-spacing:12px;animation:rewardShine 1.2s ease-in-out infinite alternate}.reward-title{color:#ffdc70;font-weight:900;font-size:24px;letter-spacing:2px;margin:10px 0}.reward-points{font-weight:950;font-size:clamp(55px,16vw,78px);line-height:1.2;color:#ffdc70;text-shadow:0 3px 18px #f9be4c66}.reward-name{font-size:19px;font-weight:800;margin:12px 0;overflow-wrap:anywhere}.reward-caption{font-size:14px;color:#dce8ff}.reward-progress{height:5px;border-radius:10px;background:#50607c;overflow:hidden;margin:22px 0 0}.reward-progress>div{height:100%;width:100%;background:#ffdc70;transform-origin:left;animation:rewardCountdown var(--rd,15s) linear forwards}.reward-dismiss{margin-top:13px;background:none;border:0;color:#dce8ff;font-size:13px;padding:8px 15px;cursor:pointer}@keyframes rewardFade{from{opacity:0}to{opacity:1}}@keyframes rewardPop{from{opacity:0;transform:scale(.7) translateY(30px)}to{opacity:1;transform:scale(1) translateY(0)}}@keyframes rewardShine{from{opacity:.55;transform:scale(.95)}to{opacity:1;transform:scale(1.1)}}@keyframes rewardCountdown{to{transform:scaleX(0)}}@media(prefers-reduced-motion:reduce){.reward-overlay,.reward-card,.reward-stars,.reward-progress>div{animation:none}}
+.reward-caption{white-space:pre-line}.reward-points.sm{font-size:clamp(40px,12vw,56px)}#goBtn:disabled,#finBtn:disabled{background:#c5cad3;border-color:#c5cad3;color:#fff;opacity:1}.reward-target{color:#dce8ff;font-size:17px;font-weight:800;margin:-4px 0 8px}.reward-cert{display:block;width:100%;margin-top:12px;min-height:50px;border:0;border-radius:14px;background:linear-gradient(#ffdc70,#e0a100);color:#3a2700;font-weight:900;font-size:17px}.acct .row{display:flex;gap:8px;margin-top:8px}.acct input{width:100%;font:inherit;padding:12px;border:2px solid var(--line);border-radius:10px;margin-top:8px}
+.plan{display:inline-block;border-radius:999px;padding:2px 12px;font-size:13px;font-weight:800;background:#e8e9ec;color:#5b6676}.plan.pro{background:#fff3c4;color:#8a5a00}
+.up li{margin:4px 0}.up ul{text-align:left;padding-left:22px;margin:8px 0}
+
+/* ---- v15 ゲーム風の見た目 ---- */
+body{background:linear-gradient(180deg,#dfe9ff 0,#f6f0ff 45%,#fff4e2 100%) fixed}
+header{background:linear-gradient(100deg,#1d3fa6,#6d3fd1);position:relative;padding-bottom:16px;box-shadow:0 3px 10px #1d3fa655}
+header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:7px;background:repeating-conic-gradient(#fff 0 25%,#111 0 50%) 0 0/14px 14px}
+header b{font-size:20px;font-style:italic;letter-spacing:.5px;text-shadow:0 2px 0 #0004}
+.tag{background:#ffffff40;font-weight:800}
+.card{border:3px solid #223a6b;border-radius:20px;box-shadow:0 5px 0 #223a6b;background:#fff}
+h2{font-size:19px;font-weight:900;color:#223a6b}
+.btn{border:3px solid #223a6b;border-radius:14px;box-shadow:0 4px 0 #223a6b;font-weight:900;transition:transform .05s}
+.btn:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 #223a6b}
+.btn.g{background:linear-gradient(180deg,#43c96e,#1f9a4a);border-color:#14692f;box-shadow:0 4px 0 #14692f;color:#fff;text-shadow:0 1px 0 #0003}
+.btn.g:active:not(:disabled){box-shadow:0 0 0 #14692f}
+.btn.r{border-color:#a8321f;box-shadow:0 4px 0 #a8321f}
+.btn:disabled{box-shadow:0 2px 0 #9aa3b2;border-color:#9aa3b2;opacity:.6}
+.hero{background:radial-gradient(circle at 80% 0,#5b3fd1 0,#1d2f73 60%);border-color:#0f1b45;box-shadow:0 5px 0 #0f1b45;color:#fff}
+.hero .muted{color:#cfdcff}.hero .score{color:#ffd34d;text-shadow:0 3px 0 #0006,0 0 18px #ffd34d66;font-style:italic}.hero .score small{color:#cfdcff}
+.bar{height:16px;border-radius:99px;background:#0f1b45;border:2px solid #ffffff55;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:repeating-linear-gradient(45deg,#ffd34d 0 10px,#ffb300 10px 20px);transition:width .6s ease}
+.m{color:#fff;border:3px solid #223a6b;border-radius:16px;box-shadow:0 4px 0 #223a6b;text-shadow:0 1px 0 #0003;min-height:78px;font-size:12px;letter-spacing:-.3px;line-height:1.3;padding:8px 2px}
+.m .n{color:#fff;opacity:.95;font-size:12px}
+.m.k-ss{background:linear-gradient(180deg,#ff6a5e,#d63a3a)}.m.k-view{background:linear-gradient(180deg,#ff7bbd,#e0338a)}.m.k-historic{background:linear-gradient(180deg,#46cc72,#1f9a4a)}
+.m.wide{background:linear-gradient(180deg,#3d5fd0,#243f9c)}
+.m.sel{box-shadow:0 4px 0 #223a6b,0 0 0 4px #ffd34d,0 0 16px 4px #ffd34d88}
+.m.done{background:linear-gradient(180deg,#ffe48a,#ffc933);color:#5a3d00;text-shadow:none;border-color:#a77700;box-shadow:0 4px 0 #a77700}.m.done .n{color:#5a3d00}
+.m.done::after{content:"⭐";position:absolute;right:6px;top:2px;font-size:15px}.m{position:relative}
+.step{border-top:2px dashed var(--line)}
+#tapBar{border-radius:14px;z-index:1100}#tapBar.pk{padding:8px 10px;gap:6px}#tapBar.pk .tt{font-size:14px;line-height:1.4}#tapBar.pk button{min-height:38px;font-size:13px;padding:0 10px}
+.plan{font-weight:900}
+.reward-overlay{backdrop-filter:blur(4px)}
+@keyframes pop{0%{transform:scale(.96)}60%{transform:scale(1.03)}100%{transform:scale(1)}}
+.card.hero,#photoCard:not(.hide),#goCard:not(.hide){animation:pop .35s ease-out}
+
+.tabs{display:flex;gap:8px;margin:6px 0 10px}.tabs .btn{flex:1;min-height:44px;font-size:15px}.tabs .btn.on{background:#223a6b;color:#fff}
+.rk{display:flex;align-items:center;gap:10px;padding:8px 6px;border-top:2px dashed var(--line)}.rk.me{background:#fff3c4;border-radius:10px}
+.rk .pos{min-width:36px;text-align:center;font-weight:900;font-size:18px;color:#223a6b}.rk .pos.p1{color:#d49a00}.rk .nm{flex:1;font-weight:800;word-break:break-all}.rk .nm small{display:block;font-weight:600;color:#5a6272;font-size:12px}.rk .pt{font-weight:900;white-space:nowrap;text-align:right}.rk .pt small{display:block;font-weight:600;color:#5a6272;font-size:11px}
+.gal{display:grid;grid-template-columns:1fr 1fr;gap:8px}.gal figure{margin:0;border:2px solid #223a6b;border-radius:12px;overflow:hidden;background:#fff}
+.gal img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#dde4f0}.gal figcaption{padding:4px 6px;font-size:12px;color:var(--m)}
+.gal .bt{display:flex;gap:4px;padding:0 6px 6px}.gal .bt button{flex:1;min-height:34px;font-size:12px;border:2px solid #223a6b;border-radius:8px;background:#fff;font-weight:800;color:#223a6b}
+.ov .box .btn{width:100%;margin-top:8px}.ov img.prev{max-width:100%;max-height:36vh;border-radius:12px;border:2px solid #223a6b}
+body.ended #missionCard,body.ended #mapCard,body.ended #goCard,body.ended #photoCard,body.ended #yaeCard,body.ended #runCard{filter:grayscale(1);opacity:.5;pointer-events:none;user-select:none}
+#tapBar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}#tapBar.hide{display:none}#tapBar .tt{flex:1 1 100%}#tapBar button{min-height:40px;font-size:14px;padding:0 12px}
+#rankCard>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:20px;font-weight:900;margin:0}#rankCard>summary::-webkit-details-marker{display:none}#rankCard>summary::after{content:'▼ たたむ';font-size:13px;font-weight:700;color:#5a6272}#rankCard:not([open])>summary::after{content:'▶ ひらく'}
+#profBox{display:none!important}.adm label{display:block;margin-top:8px}.adm select,.adm input[type=text],.adm input:not([type]){width:100%;font:inherit;padding:10px;border:2px solid var(--line);border-radius:10px;margin-top:4px;background:#fff}.adm .row{display:flex;gap:8px;margin-top:8px}.adm .row .btn{flex:1;min-height:44px;font-size:15px}.adm .lnk{word-break:break-all;background:#f3f6fb;border-radius:10px;padding:8px 10px;margin-top:6px;font-size:14px}
+</style></head><body>
+<header><img src="icon-64.png" alt="" width="34" height="34" style="border-radius:8px;background:#fff"><b id="hShop">Rally GP</b><span class="tag">ショップ</span><span id="hPlan" class="tag" style="margin-left:auto"></span></header>
+<div id="toast"></div>
+<main>
+  <div id="noShop" class="card hide" style="text-align:center"><h2>🏁 Rally GP ショップ</h2><div class="muted">このアプリは、ショップから届いたリンクから開いてください。</div></div>
+  <div id="admCard" class="card adm hide" style="border:2px solid #7a4fd0">
+    <h2>🛠 ショップ管理（管理者）</h2>
+    <div id="admMsg" class="muted"></div>
+    <div id="admBody" class="hide">
+      <label class="muted" for="admShop">ショップ</label><select id="admShop"></select>
+      <details style="margin-top:6px"><summary class="muted" style="cursor:pointer">＋ ショップを登録する</summary>
+        <label class="muted" for="admNewId">記号（半角の英小文字・数字・ハイフン。リンクに使います）</label><input id="admNewId" placeholder="例：sakurai" autocapitalize="off">
+        <label class="muted" for="admNewName">ショップ名</label><input id="admNewName" placeholder="例：ハーレーダビッドソン桜井">
+        <div class="row"><button id="admNewGo" class="btn g" type="button">登録する</button></div></details>
+      <div id="admLink" class="lnk"></div>
+      <label class="muted" for="admMonth">月</label><select id="admMonth"></select>
+      <div id="admState" style="font-weight:800;margin-top:6px"></div>
+      <div class="row"><button id="admLoad" class="btn" type="button">📥 この月のミッションを開く</button><button id="admCopy" class="btn" type="button">📋 前の月をコピー</button></div>
+      <label class="muted" for="admTitle">ミッション名（お客様の画面に出ます）</label><input id="admTitle" maxlength="40" placeholder="例：12月 磐梯山ぐるっとミッション">
+      <label class="muted" for="admMax">1か月の挑戦回数</label><select id="admMax"><option value="1">1回</option><option value="2">2回</option><option value="3" selected>3回</option><option value="4">4回</option><option value="5">5回</option></select>
+      <label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-weight:800"><input id="admPub" type="checkbox" style="width:auto;margin:0">公開する（その月の1日0:00から、お客様が始められます）</label>
+      <div class="muted" style="margin-top:8px;font-size:13px">コースは、下の「⚙ コースをつくる・変える」で作ります。作ったら「💾 保存する」を押してください。上の「▶ ミッションスタート」で、記録を送らないテスト走行もできます。</div>
+      <div class="row"><button id="admSave" class="btn g" type="button">💾 保存する</button></div>
+      <div id="admReport" class="muted" style="margin-top:10px"></div>
+    </div>
   </div>
-</body>
-</html>
+
+  <div class="card hero">
+    <div id="mTitle" style="font-weight:900;color:#ffe082;font-size:17px;margin-bottom:4px"></div>
+    <div class="muted">🏆 今回の得点（ターゲット：すべて満点で <span id="target">0</span> 点・ヤエーは加点ボーナス）</div>
+    <div class="score"><span id="total">0</span><small> 点</small></div>
+    <div class="bar"><i id="barFill"></i></div>
+  </div>
+
+  <div id="nextCard" class="card hide" style="border:2px solid var(--g);text-align:center"><h2>🏁 ミッション終了</h2><div id="nextHint" class="muted" style="margin-bottom:8px">おつかれさまでした！ 結果は、いつでも見られます。</div><div id="sendMsg" style="font-weight:800;margin-bottom:8px"></div><button id="sendRetry" class="btn hide" type="button" style="width:100%;margin-bottom:8px">📤 得点をもう一度送る</button><button id="resultBtn" class="btn" type="button" style="width:100%;margin-bottom:8px">📋 ゴールの結果を見る</button><button id="nextBtn" class="btn g" type="button" style="width:100%;min-height:56px;font-size:18px">▶ 次のミッションへ進む</button><div class="muted" style="margin-top:8px;font-size:12px">押すまで、地図とミッションはグレーのままです。ランキングには、今月の挑戦のうち「いちばん良い1回の得点」が使われます。</div></div>
+
+  <div id="startCard" class="card hide" style="border:2px solid var(--g);text-align:center"><button id="startBtn" class="btn g" type="button" style="width:100%;min-height:60px;font-size:20px">▶ ミッションスタート</button><div id="startInfo" style="margin-top:8px;font-weight:800;color:#223a6b"></div><div class="muted" style="margin-top:6px;font-size:13px;line-height:1.5">押した時点で、今月の挑戦1回として数えます（途中でやめても1回）。スタートするまでは、得点は記録されません。</div></div>
+
+  <div id="missionCard" class="card">
+    <h2>🎯 ミッション <button id="missReset" class="btn hide" type="button" style="float:right;min-height:34px;font-size:13px;padding:0 10px">↺ やり直す</button></h2>
+    <div class="strip" id="strip"></div>
+  </div>
+
+  <div id="yaeCard" class="card hide" style="border:2px solid var(--b);text-align:center">
+    <h2 id="yTitle">🖐 ヤエー</h2>
+    <p id="yHint" class="muted">SSが終わると使えます。</p>
+    <div id="yWrap"><button id="yBtn" class="yb" type="button" aria-label="ヤエー" disabled><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 215 220"><defs><linearGradient id="yaeSkin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd9b8"/><stop offset="1" stop-color="#f3b98d"/></linearGradient></defs><g stroke="#b9774a" stroke-width="5" stroke-linejoin="round" fill="#b9774a"><rect x="34" y="76" width="26" height="76" rx="13" transform="rotate(-9 47 150)"/><rect x="63" y="42" width="28" height="104" rx="14" transform="rotate(-3 77 146)"/><rect x="94" y="28" width="29" height="116" rx="14.5"/><rect x="126" y="42" width="28" height="104" rx="14" transform="rotate(4 140 146)"/><rect x="148" y="112" width="27" height="82" rx="13.5" transform="rotate(38 161 170)"/><rect x="38" y="100" width="116" height="102" rx="40"/></g><g fill="url(#yaeSkin)" stroke="none"><rect x="34" y="76" width="26" height="76" rx="13" transform="rotate(-9 47 150)"/><rect x="63" y="42" width="28" height="104" rx="14" transform="rotate(-3 77 146)"/><rect x="94" y="28" width="29" height="116" rx="14.5"/><rect x="126" y="42" width="28" height="104" rx="14" transform="rotate(4 140 146)"/><rect x="148" y="112" width="27" height="82" rx="13.5" transform="rotate(38 161 170)"/><rect x="38" y="100" width="116" height="102" rx="40"/></g><g fill="none" stroke="#d29a70" stroke-width="3" stroke-linecap="round"><path d="M62 156 Q96 176 138 150"/><path d="M70 178 Q100 192 128 176"/><path d="M84 118 Q92 134 88 148" opacity=".7"/></g></svg></button></div>
+    <div id="yRemain" style="font-size:30px;font-weight:800;margin-top:12px;color:#1f3a63"></div>
+    <button id="yBack" class="btn g" type="button" style="width:100%;margin-top:14px;min-height:56px;font-size:19px">🏠 ミッションに戻る</button>
+  </div>
+
+  <div id="photoCard" class="card hide" style="text-align:center">
+    <h2>📸 フォトポイント</h2>
+    <div id="phInfo" class="muted"></div>
+    <button id="phBtn" class="btn g" type="button" style="width:100%;margin-top:10px" disabled>📸 写真を撮る</button>
+    <input id="phFile" type="file" accept="image/*" capture="environment" class="hide">
+  </div>
+
+  <div id="goCard" class="card hide">
+    <h2 id="goTitle">SS</h2>
+    <div class="muted" style="margin:2px 0 8px;padding:6px 10px;border-radius:10px;background:#fff6dd;border:2px solid #e3ab2f;color:#6b4a00;line-height:1.5;font-size:13px">⚠️ 設定タイムは、AIが最短ルート（と、分かる範囲で道路の制限速度）をもとに決めた<b>参考タイム</b>です。必ずしも正確ではありません。SSの設定は高速道路を想定しておりません。<b>安全運転を心がけ、法定速度と交通ルールを守ってください。</b></div>
+    <details style="margin:8px 0 0;padding:6px 10px;border-radius:10px;background:#eef4ff;border:2px solid #7aa2e3;color:#1f3a63;line-height:1.5;font-size:13px"><summary style="font-weight:800;cursor:pointer">📍 Googleマップを使うときのルール（タップで開く）</summary>SS計測中にGoogleマップなどを開いてもかまいません。その間も、時間は計測されます。ただし、次の点にご注意ください。<ul style="margin:4px 0 0 18px;padding:0"><li>Googleマップを使っている間は、信号待ちなどで止まっている時間も、走行時間に数えられます。</li><li>ゴールの時刻は、ゴール地点（スタートと反対側の端）に着いてこのアプリに戻った時刻です。ゴール地点に着いたら、すぐにこのアプリに戻ってください。</li><li>信号待ちの時間を計測から外したいときは、このアプリの画面を開いたまま走ってください。</li><li>安全のため、走行中のスマホ操作はしないでください。停車できる安全な場所で操作してください。</li></ul></details>
+    <div id="goInfo" class="muted" style="margin-top:8px"></div>
+    <button id="goBtn" class="btn g" style="width:100%;margin-top:10px">⏱ 計測スタート</button>
+  </div>
+
+  <div id="runCard" class="card hide">
+    <div class="runtop"><h2 id="runTitle">SS</h2><div class="blink" id="runState">⏱ 計測中</div><button id="runCancel" class="btn r">やめる</button></div>
+    <div class="runrow"><div class="timer" id="runSpeed">0<small> km/h</small></div><div class="runside"><div id="runSet"></div><div class="muted" id="runInfo"></div></div></div>
+    <details class="runnote"><summary>⚠️ 注意事項・Googleマップのルール（タップで開く）</summary>
+    <div class="muted" style="margin:2px 0 8px;padding:6px 10px;border-radius:10px;background:#fff6dd;border:2px solid #e3ab2f;color:#6b4a00;line-height:1.5;font-size:13px">⚠️ 設定タイムは、AIが最短ルート（と、分かる範囲で道路の制限速度）をもとに決めた<b>参考タイム</b>です。必ずしも正確ではありません。SSの設定は高速道路を想定しておりません。<b>安全運転を心がけ、法定速度と交通ルールを守ってください。</b></div>
+    <div class="muted" style="margin:6px 0 0;padding:6px 10px;border-radius:10px;background:#eef4ff;border:2px solid #7aa2e3;color:#1f3a63;line-height:1.5;font-size:13px">📍 Googleマップを使ったときは、ゴール地点に着いたらすぐこのアプリに戻ってください（戻った時刻がゴール時刻です）。</div>
+    <div class="muted" style="margin:6px 0 0;padding:6px 10px;border-radius:10px;background:#eefaf0;border:2px solid #7ac28d;color:#1d4a2a;line-height:1.5;font-size:13px">🚦 信号などで止まっている間は、計測が止まります。走り出してから<b>7秒後</b>に計測が再開します（7秒のうちにまた止まったら、数え直します）。渋滞が続くときは、自動で渋滞モードになります。</div>
+    </details>
+  </div>
+
+  <div id="mapCard" class="card">
+    <div id="tapBar" class="hide"></div>
+    <div style="display:flex;gap:8px;margin-bottom:8px"><button id="loc" class="btn" style="flex:1">📍 現在地へ</button><button id="fit" class="btn" style="flex:1">全体を見る</button></div>
+    <button id="huBtn" class="btn" type="button" style="width:100%;margin-bottom:8px">🧭 進行方向を上にする：オフ</button>
+    <div id="mapWrap"><div id="map"></div><div id="huUi"><div id="huN">N</div><button type="button" id="huIn" class="huZ" style="top:8px">＋</button><button type="button" id="huOut" class="huZ" style="top:60px">－</button><div id="huAttr">© Mapbox © OpenStreetMap／地理院タイル</div></div></div>
+    <div id="gpsmsg" class="muted" style="margin-top:6px">現在地を測っています…</div>
+  </div>
+
+  <div id="finCard" class="card hide" style="border:2px solid var(--g);text-align:center"><div id="finHint" class="muted" style="margin-bottom:8px"></div><button id="finBtn" class="btn g" style="width:100%;min-height:60px;font-size:20px" disabled>🏁 ゴール</button>
+    <button id="certBtn" class="btn hide" type="button" style="width:100%;margin-top:10px">🏅 完走証明を見る</button></div>
+
+  <div id="setup" class="card">
+    <button id="setupBtn" class="btn" style="width:100%"></button>
+    <div id="profBox" class="hide" style="margin-top:10px"><label class="muted" for="nick">ニックネーム</label><input id="nick" maxlength="20" placeholder="例：くに" style="width:100%;font:inherit;padding:10px;border:2px solid var(--line);border-radius:10px;margin:2px 0 8px"><label class="muted" for="veh">車両名</label><input id="veh" maxlength="30" placeholder="例：CB400SF" style="width:100%;font:inherit;padding:10px;border:2px solid var(--line);border-radius:10px;margin:2px 0 4px"></div>
+    <div id="steps" class="hide" style="margin-top:8px"></div>
+  </div>
+
+  <div id="resCard" class="card hide"><h2>🏆 今回の結果</h2><div id="res"></div></div>
+
+  <details id="rankCard" class="card" open>
+    <summary>🏆 ショップランキング</summary>
+    <div class="muted" style="margin-top:6px">このショップから参加した人だけのランキングです。<br><b>月間</b>：今月の挑戦のうち、いちばん良い1回の得点で順位が決まります（同じ得点は同じ順位）。<br><b>年間</b>：毎月の順位ポイント（1位10・2位8・3位6・4位5・5位4・6位3・7位2・8位1）に、完走した月は1点を足した合計です（1月〜12月）。</div>
+    <div class="tabs"><button id="rkThis" class="btn on" type="button">今月</button><button id="rkLast" class="btn" type="button">先月</button><button id="rkYear" class="btn" type="button">年間</button></div>
+    <div id="rkMy" class="muted" style="margin-bottom:6px"></div>
+    <div id="rkList"></div>
+    <div id="rkLogin" class="muted hide" style="margin-top:8px">ログインして参加すると、ランキングに載ります（下の「アカウント」から）。</div>
+  </details>
+
+  <details id="movCard" class="card">
+    <summary style="cursor:pointer;font-weight:900;font-size:19px;color:#223a6b">🎬 走行ムービー（SNSシェア用）</summary>
+    <div class="muted" style="margin-top:6px">走った軌跡と、撮った写真を、3Dマップのムービーにします。ムービーは、お使いの端末の中だけで作られ、サーバーには送られません。</div>
+    <label class="muted" for="movDay" style="display:block;margin-top:8px">日にち</label>
+    <select id="movDay" style="width:100%;font:inherit;padding:10px;border:2px solid var(--line);border-radius:10px;margin-top:4px;background:#fff"></select>
+    <label style="display:flex;gap:8px;align-items:flex-start;margin-top:8px;font-size:14px"><input id="movTrim" type="checkbox" checked style="margin-top:4px">出発・到着の付近（約300m）を隠す（自宅の場所が分からないように）</label>
+    <div id="movInfo" class="muted" style="margin-top:6px"></div>
+    <div style="display:flex;gap:8px;margin-top:8px"><button id="movPlay" class="btn" type="button" style="flex:1">▶ プレビュー</button><button id="movRec" class="btn g" type="button" style="flex:1">⬇ 動画をダウンロード</button></div>
+    <button id="movStop" class="btn r hide" type="button" style="width:100%;margin-top:8px">■ 中止する</button>
+    <div id="movMsg" class="muted" style="margin-top:8px"></div>
+    <canvas id="movCv" class="hide" style="display:block;width:100%;max-width:320px;margin:10px auto 0;border-radius:14px;background:#233;aspect-ratio:9/16"></canvas>
+    <div id="movOut" class="hide" style="margin-top:10px;text-align:center"><video id="movVid" controls playsinline style="width:100%;max-width:320px;border-radius:14px"></video><button id="movShare" class="btn g" type="button" style="width:100%;margin-top:8px">📤 共有・保存</button></div>
+    <div style="margin-top:12px;border-top:2px dashed var(--line);padding-top:10px">
+      <label class="btn" style="display:block;text-align:center;cursor:pointer">📂 GPXファイルを取り込む<input id="movGpx" type="file" accept=".gpx,.xml,application/gpx+xml,text/xml" style="display:none"></label>
+      <div class="muted" style="margin-top:6px;font-size:13px">・アプリを開いている間の位置が、自動で記録されます。画面を消すと、記録が止まります。<br>・1日全体の軌跡は、Garmin・Strava・Apple・Google などで記録した「GPXファイル」を取り込むと、ムービーにできます。<br>・写真は、Rally GP で撮った写真が、撮った場所に表示されます。</div>
+    </div>
+  </details>
+
+
+  <div id="acct" class="card acct">
+    <h2>👤 アカウント</h2>
+    <div id="acctBody"></div>
+  </div>
+
+  <div class="card" style="font-size:13px;text-align:center;line-height:2"><a href="https://rally-gp.vercel.app/terms.html" target="_blank" rel="noopener">利用規約</a>　|　<a href="https://rally-gp.vercel.app/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a><div style="color:var(--m)">運営：一般社団法人地球体験機構</div></div>
+
+  <div id="resetCard" class="card hide"><button id="reset" class="btn r" style="width:100%">今日の記録をリセットする</button></div>
+
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+/* ショップ版：?shop=記号 でショップを選ぶ（ホーム画面から開いたときのために覚えておく）。?admin=1 は管理者の画面 */
+const QS = new URLSearchParams(location.search), ADMIN = QS.get('admin') === '1';
+let SHOP = (QS.get('shop') || '').trim().toLowerCase();
+try { if (SHOP) localStorage.setItem('shop_id', SHOP); else SHOP = localStorage.getItem('shop_id') || ''; } catch (e) { /* noop */ }
+const today = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
+const NEAR = 60, ACC = 50, START_NEAR = 60, PT = 5, YAE_PT = 1, YAE_MAX = 5, FALLBACK_KMH = 40, SLOTS = 3, FREE_SLOTS = 1, MOVE_ON = 4, MOVE_OFF = 2, RESUME_MS = 7000, JAM_WINDOW = 300000, JAM_STOPS = 3, JAM_OFF = 12, JAM_ON = 20, JAM_CALM = 60000, MAX_EXCL = 600000;
+const COL = { ss: '#d63a3a', view: '#ff3d9a', historic: '#2e9e4f', goal: '#c0392b' }, LAB = { ss: 'SS', view: 'フォトポイント', historic: 'チェックポイント', goal: 'ゴール' };
+const YAE_WAV = 'data:audio/wav;base64,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';
+
+/* ---------- 保存（コースは残る／今日の記録は日付が変わると消える） ---------- */
+const blank3 = () => [null, null, null];
+let course = { ss: blank3(), view: blank3(), historic: blank3(), goal: null };
+if (ADMIN) try {
+  const c = JSON.parse(localStorage.getItem('sampleTT_course3') || 'null');
+  if (c) { ['ss', 'view', 'historic'].forEach(k => { if (Array.isArray(c[k])) course[k] = blank3().map((_, i) => c[k][i] || null); }); course.goal = c.goal || null; }
+  else { const o = JSON.parse(localStorage.getItem('sampleTT_course') || 'null'); if (o) { ['ss', 'view', 'historic'].forEach(k => { if (o[k]) course[k][0] = o[k]; }); course.goal = o.goal || null; } }
+} catch (e) { /* noop */ }
+const saveCourse = () => { if (!ADMIN) return; try { localStorage.setItem('sampleTT_course3', JSON.stringify(course)); } catch (e) { /* noop */ } };
+const newDay = () => ({ d: today(), ss: blank3(), view: [false, false, false], historic: [false, false, false], goal: false, fin: false, yae: [0, 0, 0], yaeOpen: null, bestPrev: 0, started: false });
+let day = null;
+function loadDay() { let d = null; try { d = JSON.parse(localStorage.getItem(ADMIN ? 'shop_admin_day' : 'shop_day') || 'null'); } catch (e) { d = null; } if (!d || d.d !== today() || !Array.isArray(d.ss)) d = newDay();
+  /* 「ミッションスタート」ボタンより前の記録：すでに得点などがあれば、スタート済みとして扱う */
+  if (typeof d.started !== 'boolean') d.started = !!(d.fin || d.goal || d.ss.some(Boolean) || (d.view || []).some(Boolean) || (d.historic || []).some(Boolean));
+  day = d; saveDay(); }
+const saveDay = () => { try { localStorage.setItem(ADMIN ? 'shop_admin_day' : 'shop_day', JSON.stringify(day)); } catch (e) { /* noop */ } };
+
+/* ---------- 計算 ---------- */
+function dist(a, b, c, d) { const R = 6371000, r = Math.PI / 180, x = Math.sin((c - a) * r / 2) ** 2 + Math.cos(a * r) * Math.cos(c * r) * Math.sin((d - b) * r / 2) ** 2; return 2 * R * Math.asin(Math.min(1, Math.sqrt(x))); }
+const fmtD = m => m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m';
+function fmtS(sec) { sec = Math.round(sec); return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
+const fmtErr = e => (e >= 0 ? '+' : '−') + fmtS(Math.abs(e));
+const r1 = v => Math.round(v * 10) / 10;
+/* SSの採点：A→Bの道のり 1kmにつき1点が満点。設定タイムとの差 1分につき1点を引きます（0点が下限） */
+const ssMax = s => r1(s.dist / 1000);
+const ssPts = (s, errSec) => Math.max(0, r1(ssMax(s) - Math.abs(errSec) / 60));
+/* 設定タイム：地図のルート案内の所要時間に、早め(1.1倍)・普通(1.375倍)・ゆっくり(1.65倍)のゆとりを持たせます（v13：従来より各10%長め） */
+const PACE = { fast: ['早め', 47], normal: ['普通', 42], slow: ['ゆっくり', 37] };   // 平均時速（km/h）。各SSの道のりから設定タイムを計算します
+let pace = 'normal';
+if (ADMIN) try { const p0 = localStorage.getItem('sampleTT_pace'); if (p0 && PACE[p0]) pace = p0; } catch (e) { /* noop */ }
+let paceBy = {};
+if (ADMIN) try { paceBy = JSON.parse(localStorage.getItem('sampleTT_paceBy') || '{}') || {}; } catch (e) { paceBy = {}; }
+const paceOf = s => { const i = course.ss.indexOf(s); const k = paceBy[i]; return PACE[k] ? k : pace; };
+/* 設定タイム：道路ごとの制限速度（prof）がある新しいSSは、区間ごとに計算します。prof がない（これまでに登録した）SSは、これまでどおり平均時速で計算します。
+   基準は「制限速度50km/hの道で、いまの平均時速（早め47／普通42／ゆっくり37）になる」こと。制限速度が30の道は遅く、60の道は速くなります。 */
+const REF_KMH = 50, MIN_KNOWN = 0.6;
+const roadSec = (prof, k) => { let t = 0; prof.forEach(q => { const v = Math.min(Math.max(q[1] || REF_KMH, 20), 70); t += q[0] / ((v * PACE[k][1] / REF_KMH) / 3.6); }); return t; };
+const setSecK = (s, k) => Math.round(s.prof && s.prof.length ? roadSec(s.prof, k) : s.dist / (PACE[k][1] / 3.6));
+const setSec = s => setSecK(s, paceOf(s));
+/* Mapboxの区間ごとの制限速度から、(メートル, km/h) の一覧を作ります。データが足りない・おかしいときは null（これまでの計算に戻します） */
+function buildProf(an, total) {
+  try {
+    const ds = an && an.distance, ms = an && an.maxspeed; if (!ds || !ms || ds.length !== ms.length || !ds.length) return null;
+    const prof = []; let known = 0, sum = 0;
+    for (let i = 0; i < ds.length; i++) {
+      const d = ds[i]; if (!(d >= 0)) return null; const m = ms[i];
+      const v = (m && typeof m.speed === 'number' && (!m.unit || m.unit === 'km/h')) ? m.speed : 0;
+      sum += d; if (v > 0) known += d; const last = prof[prof.length - 1];
+      if (last && last[1] === v) last[0] += d; else prof.push([d, v]);
+    }
+    if (sum <= 0 || known / sum < MIN_KNOWN) return null;
+    prof.forEach(q => { q[0] = Math.round(q[0]); });
+    const r = roadSec(prof, 'normal') / (sum / (PACE.normal[1] / 3.6)); if (!(r >= 0.6 && r <= 1.6)) return null;
+    return prof;
+  } catch (e) { return null; }
+}
+const SB_URL = 'https://ovlhlmxybldojwkndcxn.supabase.co', SB_KEY = 'sb_publishable_KgScZeXHt0aNftuGJSQTkw_V-xpJijP';
+const MB_TOKEN = 'pk.eyJ1IjoiZWFydGh0cnkiLCJhIjoiY213ZThxbjFuMDA1ODMwczZycGx3aG1vNyJ9.LPjkh9Fy1B6vgJIpbpe00g';
+let premium = true;   // ショップ版：SS・フォト・チェックポイントは各3か所まで、お客様は無料
+const limit = () => premium ? SLOTS : FREE_SLOTS;
+const regs = k => course[k].map((v, i) => v && i < limit() ? i : -1).filter(i => i >= 0);
+const nReg = k => regs(k).length;
+const anyReg = () => nReg('ss') + nReg('view') + nReg('historic') > 0;
+const target = () => r1(regs('ss').reduce((a, i) => a + ssMax(course.ss[i]), 0) + (nReg('view') + nReg('historic')) * PT);
+const total = () => r1(day.ss.reduce((s, x) => s + (x ? x.pts : 0), 0) + day.view.filter(Boolean).length * PT + day.historic.filter(Boolean).length * PT + day.yae.reduce((s, n) => s + Math.min(n, YAE_MAX), 0) * YAE_PT);
+const allDone = () => anyReg() && regs('ss').every(i => day.ss[i]) && regs('view').every(i => day.view[i]) && regs('historic').every(i => day.historic[i]);
+function remainTxt() { const o = []; regs('ss').forEach(i => { if (!day.ss[i]) o.push('SS' + (i + 1)); }); ['view', 'historic'].forEach(k => regs(k).forEach(i => { if (!day[k][i]) o.push(LAB[k] + (i + 1)); })); return o.join('・') || 'なし'; }
+function toast(t) { const d = $('toast'); d.textContent = t; d.style.display = 'block'; try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) { /* noop */ } clearTimeout(d._t); d._t = setTimeout(() => { d.style.display = 'none'; }, 7000); }
+$('toast').onclick = () => { $('toast').style.display = 'none'; };
+/* 得点のポップアップ：Rally TT と同じ「POINT GET!」の見た目。各ポイントは15秒で消えます。ゴールだけは、ボタンを押すまで消えません */
+const ovQ = [];
+let ovEl = null, ovT = null;
+function pop(name, pts, caption, sticky, goal, tgt, cert) { try { movEv(name, pts); } catch (e) { /* noop */ } ovQ.push({ name, pts, caption, sticky, goal, tgt, cert }); if (!ovEl) nextPop(); }
+function nextPop() {
+  clearTimeout(ovT); if (ovEl) { ovEl.remove(); ovEl = null; }
+  const x = ovQ.shift(); if (!x) return;
+  const mk = (c, t, tag) => { const e = document.createElement(tag || 'div'); e.className = c; if (t !== undefined) e.textContent = t; return e; };
+  const o = mk('reward-overlay'), card = mk('reward-card');
+  const sc = mk('reward-points' + (x.goal ? ' sm' : ''), x.goal ? '合計 ' + r1(x.pts) + ' pt' : '+' + r1(x.pts) + ' pt');
+  const cap = mk('reward-caption', x.caption || (x.goal ? '' : '🎉 ポイント獲得おめでとう！'));
+  card.append(mk('reward-stars', '✦ ✨ ✦'), mk('reward-title', x.goal ? 'GOAL!' : 'POINT GET!'), sc); if (x.goal) card.appendChild(mk('reward-target', '目標ポイント ' + r1(x.tgt) + ' pt')); card.append(mk('reward-name', x.name), cap);
+  if (x.goal && x.cert) { const cb = mk('reward-cert', '🏅 完走証明を発行', 'button'); cb.type = 'button'; cb.onclick = showCertificate; card.appendChild(cb); }
+  if (!x.sticky) { const pr = mk('reward-progress'); const d = document.createElement('div'); d.style.setProperty('--rd', '15s'); pr.appendChild(d); card.appendChild(pr); }
+  const cl = mk('reward-dismiss', x.sticky ? '閉じる' : 'タップして閉じる', 'button'); cl.type = 'button'; cl.onclick = () => { const g = x.goal; nextPop(); if (g) setTimeout(() => { try { $('resCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { /* noop */ } }, 120); }; card.appendChild(cl);
+  o.appendChild(card); if (!x.sticky) o.addEventListener('click', e => { if (e.target === o) nextPop(); });
+  document.body.appendChild(o); ovEl = o; try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) { /* noop */ }
+  if (!x.sticky) ovT = setTimeout(nextPop, 15000);
+}
+
+/* ---------- 完走証明（Rally TT の完走証明のデザイン・チェッカーフラッグ版） ---------- */
+    function fitText(ctx, text, maxW, size, weight, min) {
+      let sz = size;
+      do { ctx.font = weight + ' ' + sz + 'px "Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif'; if (ctx.measureText(text).width <= maxW) break; sz -= 2; } while (sz > (min || 20));
+      return sz;
+    }
+    function arcText(x, text, cx, cy, r, centerAngle, size, spacing) {
+      // 円の上側に沿って文字を並べる（centerAngle=-π/2 で真上）
+      x.save(); x.font = '800 ' + size + 'px "Hiragino Sans","Noto Sans JP",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+      const ws = Array.from(text).map(ch => x.measureText(ch).width + spacing), tot = ws.reduce((a, b) => a + b, 0) - spacing;
+      let ang = centerAngle - (tot / r) / 2;
+      Array.from(text).forEach((ch, i) => {
+        const w = ws[i] - spacing, th = ang + (w / 2) / r;
+        x.save(); x.translate(cx + r * Math.cos(th), cy + r * Math.sin(th)); x.rotate(th + Math.PI / 2);
+        x.fillStyle = 'rgba(255,238,170,.55)'; x.fillText(ch, 0, 1.5);
+        x.fillStyle = '#4a2f05'; x.fillText(ch, 0, 0); x.restore();
+        ang += ws[i] / r;
+      });
+      x.restore();
+    }
+    function laurel(x, cx, cy, r, from, to, dir) {
+      // 月桂樹の枝（from→to の角度に沿って葉を並べる）
+      const n = 15;
+      for (let i = 0; i <= n; i++) {
+        const t = from + (to - from) * (i / n), px = cx + r * Math.cos(t), py = cy + r * Math.sin(t);
+        const tan = t + (to > from ? Math.PI / 2 : -Math.PI / 2), sz = 30 - i * 0.6;
+        for (const side of [-1, 1]) {
+          x.save(); x.translate(px + side * 15 * Math.cos(t), py + side * 15 * Math.sin(t));
+          x.rotate(tan + side * dir * 0.7);
+          const g = x.createLinearGradient(0, -sz, 0, sz); g.addColorStop(0, '#f6dc86'); g.addColorStop(1, '#a5721a');
+          x.fillStyle = g; x.strokeStyle = 'rgba(70,42,4,.7)'; x.lineWidth = 1.5;
+          x.beginPath(); x.ellipse(0, 0, 8, sz, 0, 0, Math.PI * 2); x.fill(); x.stroke();
+          x.beginPath(); x.moveTo(0, -sz * .8); x.lineTo(0, sz * .8); x.stroke(); x.restore();
+        }
+      }
+    }
+    /* 大会の種類ごとの、完走証明の中央の絵（独自デザインの金色ライン）。bike は従来の画像。 */
+    function kindEmblem(x, cx, cy, kind) {
+      x.save(); x.translate(cx, cy); x.scale(.85, .85); x.lineCap = 'round'; x.lineJoin = 'round';
+      const g = x.createLinearGradient(-170, -110, 170, 90);
+      g.addColorStop(0, '#fff0b0'); g.addColorStop(.5, '#d9a62e'); g.addColorStop(1, '#8a5d12');
+      const dark = '#0b0c0f', fillG = 'rgba(214,170,62,.28)';
+      // 後光
+      x.strokeStyle = 'rgba(230,190,90,.22)'; x.lineWidth = 2;
+      for (let i = 0; i < 28; i++) { const a = -Math.PI + (i / 27) * Math.PI; x.beginPath(); x.moveTo(40 * Math.cos(a), -20 + 40 * Math.sin(a)); x.lineTo(210 * Math.cos(a), -20 + 150 * Math.sin(a)); x.stroke(); }
+      const road = () => { x.strokeStyle = g; x.lineWidth = 5; x.beginPath(); x.moveTo(-200, 100); x.quadraticCurveTo(-190, 62, -120, 54); x.lineTo(130, 54); x.quadraticCurveTo(190, 62, 200, 100); x.stroke(); };
+      const wheel = (wx, wy, r) => { x.fillStyle = dark; x.strokeStyle = g; x.lineWidth = 8; x.beginPath(); x.arc(wx, wy, r, 0, 7); x.fill(); x.stroke(); x.lineWidth = 3; x.beginPath(); x.arc(wx, wy, r * .38, 0, 7); x.stroke(); };
+      x.strokeStyle = g; x.fillStyle = g;
+      if (kind === 'car') {
+        road();
+        // 車体
+        x.lineWidth = 6; x.fillStyle = fillG; x.strokeStyle = g; x.beginPath();
+        x.moveTo(-180, 44); x.lineTo(-170, 6); x.quadraticCurveTo(-150, -4, -110, -8); x.lineTo(-62, -52); x.quadraticCurveTo(-48, -64, -24, -64);
+        x.lineTo(60, -64); x.quadraticCurveTo(86, -64, 102, -44); x.lineTo(128, -8); x.quadraticCurveTo(170, -4, 180, 14); x.lineTo(182, 44); x.closePath(); x.fill(); x.stroke();
+        // 窓
+        x.lineWidth = 4; x.fillStyle = dark; x.beginPath(); x.moveTo(-82, -12); x.lineTo(-46, -48); x.lineTo(-10, -48); x.lineTo(-10, -12); x.closePath(); x.fill(); x.stroke();
+        x.beginPath(); x.moveTo(6, -12); x.lineTo(6, -48); x.lineTo(56, -48); x.quadraticCurveTo(70, -48, 80, -36); x.lineTo(98, -12); x.closePath(); x.fill(); x.stroke();
+        x.lineWidth = 3; x.beginPath(); x.moveTo(-10, -12); x.lineTo(6, -12); x.stroke();
+        // ライト・ライン
+        x.fillStyle = g; x.beginPath(); x.ellipse(166, 18, 12, 7, 0, 0, 7); x.fill(); x.beginPath(); x.ellipse(-170, 20, 8, 6, 0, 0, 7); x.fill();
+        x.lineWidth = 4; x.beginPath(); x.moveTo(-160, 30); x.lineTo(150, 30); x.stroke();
+        wheel(-100, 46, 38); wheel(112, 46, 38);
+      } else if (kind === 'bicycle') {
+        road();
+        const rw = [-115, 52], fw = [105, 52];
+        wheel(rw[0], rw[1], 56); wheel(fw[0], fw[1], 56);
+        // フレーム
+        x.strokeStyle = g; x.lineWidth = 7; x.beginPath();
+        x.moveTo(rw[0], rw[1]); x.lineTo(-30, 52); x.lineTo(-62, -28); x.lineTo(rw[0], rw[1]); x.moveTo(-62, -28); x.lineTo(52, -34); x.lineTo(-30, 52); x.moveTo(52, -34); x.lineTo(fw[0], fw[1]); x.stroke();
+        x.lineWidth = 6; x.beginPath(); x.moveTo(52, -34); x.lineTo(60, -60); x.lineTo(92, -62); x.stroke();
+        x.lineWidth = 8; x.beginPath(); x.moveTo(-76, -34); x.lineTo(-48, -36); x.stroke();
+        // ライダー
+        x.lineWidth = 20; x.beginPath(); x.moveTo(-60, -44); x.quadraticCurveTo(-10, -86, 50, -80); x.stroke();
+        x.lineWidth = 11; x.beginPath(); x.moveTo(44, -80); x.lineTo(86, -62); x.stroke();
+        x.lineWidth = 12; x.beginPath(); x.moveTo(-52, -40); x.lineTo(-18, 6); x.lineTo(-30, 52); x.stroke();
+        x.fillStyle = g; x.beginPath(); x.arc(70, -104, 20, 0, 7); x.fill();
+        x.fillStyle = dark; x.beginPath(); x.ellipse(80, -102, 10, 6, -0.2, 0, 7); x.fill();
+      } else if (kind === 'walk') {
+        // 山と道
+        x.lineWidth = 5; x.fillStyle = 'rgba(214,170,62,.18)'; x.strokeStyle = g;
+        x.beginPath(); x.moveTo(-205, 100); x.lineTo(-110, -36); x.lineTo(-62, 28); x.lineTo(14, -78); x.lineTo(120, 100); x.closePath(); x.fill(); x.stroke();
+        x.beginPath(); x.moveTo(-40, 100); x.quadraticCurveTo(0, 60, 60, 56); x.quadraticCurveTo(150, 52, 205, 100); x.stroke();
+        // 歩く人
+        x.lineWidth = 15; x.strokeStyle = g; x.beginPath(); x.moveTo(-14, -52); x.lineTo(-6, 6); x.stroke();                     // 胴
+        x.beginPath(); x.moveTo(-6, 6); x.lineTo(-40, 62); x.lineTo(-58, 98); x.moveTo(-6, 6); x.lineTo(22, 54); x.lineTo(30, 98); x.stroke(); // 脚
+        x.lineWidth = 12; x.beginPath(); x.moveTo(-12, -40); x.lineTo(24, -10); x.lineTo(58, -2); x.stroke();                       // 前の腕
+        x.beginPath(); x.moveTo(-14, -40); x.lineTo(-44, -6); x.stroke();                                                         // 後ろの腕
+        x.lineWidth = 6; x.beginPath(); x.moveTo(58, -2); x.lineTo(76, 98); x.stroke();                                           // ストック
+        x.fillStyle = fillG; x.lineWidth = 5; x.beginPath(); x.roundRect ? x.roundRect(-52, -52, 30, 54, 10) : x.rect(-52, -52, 30, 54); x.fill(); x.stroke(); // リュック
+        x.fillStyle = g; x.beginPath(); x.arc(-4, -80, 20, 0, 7); x.fill();
+        x.lineWidth = 5; x.beginPath(); x.moveTo(-26, -90); x.lineTo(22, -92); x.stroke(); // 帽子のつば
+      } else {
+        // 汎用: チェッカーフラッグとゴールライン
+        road();
+        x.lineWidth = 8; x.strokeStyle = g; x.beginPath(); x.moveTo(-96, 100); x.lineTo(-96, -108); x.stroke();
+        x.beginPath(); x.moveTo(96, 100); x.lineTo(96, -108); x.stroke();
+        x.fillStyle = g; x.beginPath(); x.arc(-96, -112, 9, 0, 7); x.fill(); x.beginPath(); x.arc(96, -112, 9, 0, 7); x.fill();
+        // 旗（波打つ）
+        const cols = 8, rows = 4, W = 192, H = 100, X0 = -96, Y0 = -96;
+        const wave = (u, v) => [X0 + u * W, Y0 + v * H + Math.sin(u * Math.PI * 2) * 9];
+        for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+          const p = [wave(i / cols, j / rows), wave((i + 1) / cols, j / rows), wave((i + 1) / cols, (j + 1) / rows), wave(i / cols, (j + 1) / rows)];
+          x.beginPath(); x.moveTo(p[0][0], p[0][1]); for (let k = 1; k < 4; k++) x.lineTo(p[k][0], p[k][1]); x.closePath();
+          x.fillStyle = ((i + j) % 2 === 0) ? g : dark; x.fill();
+        }
+        x.lineWidth = 4; x.strokeStyle = g; x.beginPath(); x.moveTo(wave(0, 0)[0], wave(0, 0)[1]);
+        for (let u = 0; u <= 1.001; u += .05) { const p = wave(u, 0); x.lineTo(p[0], p[1]); }
+        for (let u = 1; u >= -0.001; u -= .05) { const p = wave(u, 1); x.lineTo(p[0], p[1]); }
+        x.closePath(); x.stroke();
+      }
+      x.restore();
+    }
+    function drawMedal(c, W, H) {
+      const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+      const x = cv.getContext('2d'), cx = W / 2, cy = 600, RO = 480, W_RING = 104, RM = RO - W_RING / 2, RI = RO - W_RING;
+      const FONT = '"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif';
+      // 背景（黒・金のきらめき）
+      x.fillStyle = '#07080a'; x.fillRect(0, 0, W, H);
+      let g = x.createRadialGradient(cx, cy, 100, cx, cy, 760); g.addColorStop(0, 'rgba(120,90,30,.28)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+      let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      for (let i = 0; i < 160; i++) { x.fillStyle = 'rgba(240,205,120,' + (0.15 + rnd() * 0.5) + ')'; x.beginPath(); x.arc(rnd() * W, rnd() * 1100, 0.6 + rnd() * 1.8, 0, 7); x.fill(); }
+      // 内側の黒い面
+      x.fillStyle = '#0c0d10'; x.beginPath(); x.arc(cx, cy, RO - 4, 0, 7); x.fill();
+      // 金のリング（下が開いたリング）
+      const gap = 0.52, a0 = Math.PI / 2 + gap, a1 = Math.PI / 2 - gap + Math.PI * 2;
+      x.save(); x.shadowColor = 'rgba(0,0,0,.8)'; x.shadowBlur = 30; x.shadowOffsetY = 12;
+      g = x.createLinearGradient(cx - RO, cy - RO, cx + RO, cy + RO);
+      [[0, '#7a5210'], [.18, '#f6dc86'], [.35, '#b8801a'], [.5, '#ffeaa6'], [.68, '#8a5d12'], [.85, '#e2b441'], [1, '#6e4a0e']].forEach(s => g.addColorStop(s[0], s[1]));
+      x.strokeStyle = g; x.lineWidth = W_RING; x.lineCap = 'butt'; x.beginPath(); x.arc(cx, cy, RM, a0, a1); x.stroke(); x.restore();
+      for (const [rr, col, lw] of [[RO - 2, '#ffe9a0', 4], [RO - W_RING + 2, '#f3cf6a', 4], [RM + W_RING / 2 - 14, 'rgba(70,42,4,.55)', 2], [RM - W_RING / 2 + 14, 'rgba(70,42,4,.55)', 2]]) {
+        x.strokeStyle = col; x.lineWidth = lw; x.beginPath(); x.arc(cx, cy, rr, a0, a1); x.stroke();
+      }
+      // 下の銘板（リングの切れ目を埋める黒い板と金の縁）
+      x.save(); x.beginPath(); x.arc(cx, cy, RO - 4, 0, 7); x.clip(); x.fillStyle = '#0c0d10'; x.fillRect(cx - 250, 944, 500, 160);
+      x.strokeStyle = 'rgba(214,170,62,.5)'; x.lineWidth = 2; x.beginPath(); x.moveTo(cx - 250, 944); x.lineTo(cx + 250, 944); x.stroke(); x.restore();
+      x.strokeStyle = g; x.lineWidth = 7; x.beginPath(); x.arc(cx, cy, RO - 3, a1 - Math.PI * 2, a0); x.stroke();
+      // 文字（リング上）と月桂樹
+      arcText(x, 'RALLY  GP  SOLO', cx, cy, RM, -Math.PI / 2, 46, 8);
+      laurel(x, cx, cy, RM, Math.PI * 0.72, Math.PI * 1.13, 1);
+      laurel(x, cx, cy, RM, Math.PI * 0.28, -Math.PI * 0.13, -1);
+      x.textAlign = 'center';
+      const gold = x.createLinearGradient(0, 400, 0, 470); gold.addColorStop(0, '#fff0b0'); gold.addColorStop(.5, '#e4b840'); gold.addColorStop(1, '#a8741a');
+      // 大会名
+      x.fillStyle = '#e9d9a8'; const en = c.event_name || ''; fitText(x, en, 560, 36, '600', 20); x.fillText(en, cx, 352);
+      // 完走証明
+      x.fillStyle = gold; x.font = '800 118px ' + FONT; x.fillText('完走証明', cx, 470);
+      kindEmblem(x, cx, 588, 'generic');
+      const tagText = 'SOLO TOURING CHALLENGE';
+      const tagSz = fitText(x, tagText, 560, 30, '700', 16);
+      x.fillStyle = '#e9d9a8'; x.font = '700 ' + tagSz + 'px ' + FONT; x.fillText(tagText, cx, 744);
+      x.strokeStyle = 'rgba(214,170,62,.6)'; x.lineWidth = 2; x.beginPath(); x.moveTo(cx - 230, 766); x.lineTo(cx + 230, 766); x.stroke();
+      // 本人情報
+      x.fillStyle = '#fff'; const nn = c.nickname || ''; fitText(x, nn, 480, 50, '800', 28); x.fillText(nn, cx, 822);
+      x.fillStyle = '#d9dde4'; const l2 = c.vehicle || ''; fitText(x, l2, 480, 32, '600', 20); x.fillText(l2, cx, 862);
+      x.fillStyle = gold; x.font = '800 40px ' + FONT; x.fillText(String(r1(c.points)) + ' pt', cx, 908);
+      // 下の銘板: 日付・証明書番号
+      x.fillStyle = '#e9d9a8'; x.font = '700 22px ' + FONT; x.fillText('SUCCESSFULLY COMPLETED ON', cx, 974);
+      let d = String(c.event_day || ''); try { const t = new Date(d + 'T00:00:00+09:00'); d = t.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Tokyo' }).toUpperCase(); } catch (e) { /* noop */ }
+      x.fillStyle = gold; x.font = '800 34px ' + FONT; x.fillText(d, cx, 1011);
+      x.fillStyle = '#9aa1ad'; x.font = '500 18px ' + FONT; x.fillText('RALLY GP  |  ' + (c.cert_no || ''), cx, 1038);
+      return cv;
+    }
+    function drawCertificate(c) {
+      const W = 1080, H = 1620, top = drawMedal(c, W, 1120), cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+      const x = cv.getContext('2d'); x.fillStyle = '#07080a'; x.fillRect(0, 0, W, H);
+      x.drawImage(top, 0, 0);
+      // 床への映り込み
+      x.save(); x.translate(0, 1120 + 1120 - 20); x.scale(1, -1); x.globalAlpha = .32; x.drawImage(top, 0, 0); x.restore();
+      const g = x.createLinearGradient(0, 1120, 0, H); g.addColorStop(0, 'rgba(7,8,10,.45)'); g.addColorStop(.7, 'rgba(7,8,10,.96)'); g.addColorStop(1, '#07080a');
+      x.fillStyle = g; x.fillRect(0, 1120, W, H - 1120);
+      return cv;
+    }
+
+function showCertificate() {
+  const nick = ($('nick').value || '').trim() || 'ライダー', veh = ($('veh').value || '').trim();
+  const c = { event_name: 'RALLY GP', nickname: nick, vehicle: veh, points: total(), event_day: day.d, cert_no: 'GP-' + day.d.replace(/-/g, '') };
+  const cv = drawCertificate(c), url = cv.toDataURL('image/png');
+  const old = $('certPop'); if (old) old.remove();
+  const pop = document.createElement('div'); pop.id = 'certPop'; pop.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.86);overflow:auto;padding:16px;box-sizing:border-box';
+  const w = document.createElement('div'); w.style.cssText = 'max-width:460px;margin:0 auto';
+  const t = document.createElement('p'); t.style.cssText = 'color:#fff;text-align:center;font-weight:800;margin:4px 0 10px'; t.textContent = '🏅 完走おめでとうございます！';
+  const img = document.createElement('img'); img.src = url; img.alt = '完走証明'; img.style.cssText = 'width:100%;max-width:420px;border-radius:12px;display:block;margin:0 auto;-webkit-touch-callout:default';
+  const sv = document.createElement('button'); sv.type = 'button'; sv.className = 'btn g'; sv.style.cssText = 'width:100%;margin-top:12px'; sv.textContent = '⬇ 画像を保存';
+  sv.onclick = () => cv.toBlob(async blob => {
+    if (!blob) return; const file = new File([blob], 'rally-gp-' + day.d + '.png', { type: 'image/png' });
+    try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }, 'image/png');
+  const hint = document.createElement('p'); hint.style.cssText = 'color:#cfd5df;font-size:13px;text-align:center;margin:8px 0'; hint.textContent = '保存できないときは、画像を長押しして「写真に追加」を選んでください。';
+  const cl = document.createElement('button'); cl.type = 'button'; cl.className = 'btn'; cl.style.cssText = 'width:100%'; cl.textContent = '閉じる'; cl.onclick = () => pop.remove();
+  w.append(t, img, sv, hint, cl); pop.appendChild(w); document.body.appendChild(pop);
+}
+
+/* ---------- 地図 ---------- */
+let centeredOnce = false;
+let map = null, layer = null, candLayer = null, me = null, fix = null, fitted = false, tapMode = null, tapIdx = 0, tmpA = null, focus = null, focusWait = false;
+function pinHtml(color, text) { return '<div style="position:relative;width:28px;height:36px"><div style="position:absolute;left:0;top:0;width:24px;height:24px;margin:2px;box-sizing:border-box;background:' + color + ';border:2px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 5px #0007"></div><div style="position:absolute;left:2px;top:2px;width:24px;height:24px;line-height:24px;text-align:center;color:#fff;font-weight:800;font-size:11px">' + (text || '') + '</div></div>'; }
+const pin = (c, t) => L.divIcon({ className: '', html: pinHtml(c, t), iconSize: [28, 36], iconAnchor: [14, 34] });
+function initMap() {
+  if (map || typeof L === 'undefined') return;
+  map = L.map('map').setView([37.4, 140.4], 8);
+  const baseMb = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/512/{z}/{x}/{y}@2x?access_token=' + MB_TOKEN, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' });
+  const gsiAttr = '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>';
+  const baseGsi = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', { maxNativeZoom: 18, maxZoom: 19, attribution: gsiAttr });
+  const baseGsiPhoto = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', { maxNativeZoom: 18, maxZoom: 19, attribution: gsiAttr });
+  const baseMaps = { 'Mapbox（標準）': baseMb, '国土地理院（日本語）': baseGsi, '国土地理院（航空写真）': baseGsiPhoto };
+  let baseKey = 'Mapbox（標準）';
+  try { const sv = localStorage.getItem('gp_basemap'); if (sv && baseMaps[sv]) baseKey = sv; } catch (e) {}
+  baseMaps[baseKey].addTo(map);
+  L.control.layers(baseMaps, null, { position: 'topright', collapsed: true }).addTo(map);
+  map.on('baselayerchange', ev => { try { localStorage.setItem('gp_basemap', ev.name); } catch (e) {} });
+  layer = L.layerGroup().addTo(map); candLayer = L.layerGroup().addTo(map);
+  map.on('click', e => { if (tapMode) onTap(e.latlng.lat, e.latlng.lng); });
+  setTimeout(() => huSet(hu), 0);
+}
+function remainPts() {
+  const r = [];
+  regs('ss').forEach(i => { if (!day.ss[i]) { r.push(course.ss[i].a, course.ss[i].b); } });
+  ['view', 'historic'].forEach(k => regs(k).forEach(i => { if (!day[k][i]) r.push(course[k][i]); }));
+  if (course.goal && !day.fin) r.push(course.goal);
+  return r;
+}
+function allPts() {
+  const r = [];
+  regs('ss').forEach(i => r.push(course.ss[i].a, course.ss[i].b));
+  ['view', 'historic'].forEach(k => regs(k).forEach(i => r.push(course[k][i])));
+  if (course.goal) r.push(course.goal);
+  return r;
+}
+function fitTo(pts, maxZ) { if (!map || !pts.length) return false; if (pts.length === 1) { map.setView(pts[0], 15); return true; } map.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: maxZ || 17 }); return true; }
+function drawMap() {
+  if (!map) return; layer.clearLayers(); const b = [];
+  const onlySS = focus && focus.k === 'ss' ? focus.i : null;
+  regs('ss').forEach(i => { if (onlySS !== null && i !== onlySS) return; const s = course.ss[i], c = day.ss[i] ? '#9aa0a6' : COL.ss; L.marker(s.a, { icon: pin(c, (i + 1) + 'A') }).addTo(layer); L.marker(s.b, { icon: pin(c, (i + 1) + 'B') }).addTo(layer); L.polyline(s.line || [s.a, s.b], { color: c, weight: 5, opacity: .85 }).addTo(layer); b.push(s.a, s.b); });
+  if (tmpA && tapMode === 'ss') L.marker(tmpA, { icon: pin(COL.ss, (tapIdx + 1) + 'A') }).addTo(layer);
+  if (ssPick && tapMode === 'ss') L.marker(ssPick.b, { icon: pin(COL.ss, (tapIdx + 1) + 'B') }).addTo(layer);
+  { let inb = null;
+    if (onlySS !== null && course.ss[onlySS]) { const q = course.ss[onlySS], P = [q.a, q.b]; if (q.line) q.line.forEach(p => P.push(p)); if (fix) P.push([fix.lat, fix.lon]);
+      const la = P.map(p => p[0]), lo = P.map(p => p[1]), dla = (Math.max(...la) - Math.min(...la)) * 0.15 + 0.002, dlo = (Math.max(...lo) - Math.min(...lo)) * 0.15 + 0.002;
+      inb = p => p[0] >= Math.min(...la) - dla && p[0] <= Math.max(...la) + dla && p[1] >= Math.min(...lo) - dlo && p[1] <= Math.max(...lo) + dlo; }
+    ['view', 'historic'].forEach(k => regs(k).forEach(i => { const p = course[k][i]; if (inb && !inb(p)) return; L.marker(p, { icon: pin(day[k][i] ? '#9aa0a6' : COL[k], LAB[k].slice(0, 1) + (i + 1)) }).addTo(layer); b.push(p); })); }
+  if (course.goal && onlySS === null) { L.marker(course.goal, { icon: pin(day.fin ? '#9aa0a6' : COL.goal, '🏁') }).addTo(layer); b.push(course.goal); }
+  if (!fitted && b.length > 1 && !focus) { const rp = remainPts(); fitTo(rp.length > 1 ? rp : b, 17); fitted = true; }
+  drawGuide();
+}
+$('fit').onclick = () => {
+  focus = null; focusWait = false; renderStrip(); drawMap();
+  if (!map) return; const rp = remainPts(); const pts = rp.length ? rp : allPts();
+  if (pts.length) fitTo(pts, 17); else if (fix) map.setView([fix.lat, fix.lon], 14);
+};
+$('loc').onclick = () => {
+  if (!fix || !map) { toast('現在地を測っています。'); return; }
+  focus = null; focusWait = false; renderStrip(); drawMap();
+  if (hu) { map.setView([fix.lat, fix.lon], 16, { animate: false }); return; }
+  const rp = remainPts(); if (rp.length) fitTo(rp.concat([[fix.lat, fix.lon]]), 17); else map.setView([fix.lat, fix.lon], 15);
+};
+
+/* ミッションボタンを押したとき：現在地と目標の地点が両方入る縮尺に、自動で合わせます */
+function focusPos() { if (!focus) return null; if (focus.k === 'ss') return course.ss[focus.i] ? course.ss[focus.i].a : null; if (focus.k === 'goal') return course.goal; return course[focus.k][focus.i]; }
+/* 選んだミッションの地点まで、現在地から水色の線（直線）を引きます。SSは近いほうの端（AかB）。SS計測中は線を出しません */
+let guide = null;
+function guidePos() {
+  if (!focus || !day || day.fin || tapMode || run) return null; const k = focus.k, i = focus.i;
+  if (k === 'ss') { const q = course.ss[i]; if (!q || day.ss[i]) return null; return dEnd(q, 'a') <= dEnd(q, 'b') ? q.a : q.b; }
+  if (k === 'goal') return course.goal || null;
+  return course[k] && course[k][i] && !day[k][i] ? course[k][i] : null;
+}
+function drawGuide() {
+  if (!map) return; const p = fix ? guidePos() : null;
+  if (!p) { if (guide) { map.removeLayer(guide); guide = null; } return; }
+  const ll = [[fix.lat, fix.lon], p];
+  if (guide) guide.setLatLngs(ll); else guide = L.polyline(ll, { color: '#29b6f6', weight: 5, opacity: .95, dashArray: '10 8', interactive: false }).addTo(map);
+  if (me) me.bringToFront();
+}
+function showFocus(scroll) {
+  if (!map) return;
+  if (focus && focus.k === 'ss' && course.ss[focus.i]) {
+    const q = course.ss[focus.i]; let pts = [q.a, q.b]; if (fix) pts = [dEnd(q, 'a') <= dEnd(q, 'b') ? q.a : q.b, [fix.lat, fix.lon]];
+    fitTo(pts, 17); focusWait = !fix; if (scroll) scrollToMission(); return;
+  }
+  const p = focusPos(); if (!p) return; const pts = [p];
+  if (fix) pts.push([fix.lat, fix.lon]);
+  if (pts.length === 1) { map.setView(p, 15); focusWait = true; } else { map.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 17 }); focusWait = false; }
+  if (scroll) scrollToMission();
+}
+let noAutoScrollUntil = 0;
+function scrollToMission() { noAutoScrollUntil = Date.now() + 4000; const go = () => { try { const g = $('goCard'); (g && !g.classList.contains('hide') ? g : $('map')).scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { /* noop */ } }; setTimeout(go, 80); setTimeout(go, 600); }
+
+
+/* ---------- 進行方向を上にする地図（CSSで地図を回す） ---------- */
+let hu = false, hdg = 0, hdgAcc = 0, lastHp = null;
+try { hu = localStorage.getItem('gp_hu') === '1'; } catch (e) { /* noop */ }
+function huSize() {
+  const w = $('mapWrap'), m = $('map'); if (!w || !m) return;
+  if (!hu) { m.style.cssText = ''; w.style.removeProperty('--hdg'); if (map) map.invalidateSize(); return; }
+  const W = w.clientWidth, H = w.clientHeight, D = Math.ceil(Math.sqrt(W * W + H * H)) + 4;
+  m.style.width = D + 'px'; m.style.height = D + 'px'; m.style.left = ((W - D) / 2) + 'px'; m.style.top = ((H - D) / 2) + 'px'; m.style.transformOrigin = '50% 50%';
+  huRot(); if (map) { map.invalidateSize(); if (fix) map.setView([fix.lat, fix.lon], map.getZoom(), { animate: false }); }
+}
+function huRot() {
+  const w = $('mapWrap'), m = $('map'); if (!hu || !w || !m) return;
+  m.style.transform = 'rotate(' + (-hdgAcc) + 'deg)'; w.style.setProperty('--hdg', hdgAcc + 'deg'); $('huN').style.transform = 'rotate(' + (-hdgAcc) + 'deg)';
+}
+function huSet(on) {
+  if (on && tapMode) { toast('地点を決めている間は、進行方向を上にできません。'); return; }
+  hu = on; try { localStorage.setItem('gp_hu', on ? '1' : '0'); } catch (e) { /* noop */ }
+  $('mapWrap').classList.toggle('hu', hu); $('huBtn').textContent = '🧭 進行方向を上にする：' + (hu ? 'オン' : 'オフ'); $('huBtn').classList.toggle('g', hu);
+  if (map) { if (hu) { map.dragging.disable(); map.touchZoom.disable(); map.doubleClickZoom.disable(); map.boxZoom.disable(); } else { map.dragging.enable(); map.touchZoom.enable(); map.doubleClickZoom.enable(); map.boxZoom.enable(); } }
+  huSize(); if (hu && map && fix) map.setView([fix.lat, fix.lon], Math.max(map.getZoom(), 15), { animate: false });
+}
+function huFix(c) {
+  if (!hu) return; let h = null;
+  if (typeof c.heading === 'number' && isFinite(c.heading) && typeof c.speed === 'number' && c.speed > 1.5) h = c.heading;
+  else if (lastHp) { if (dist(lastHp[0], lastHp[1], c.latitude, c.longitude) >= 12) { h = brg(lastHp, [c.latitude, c.longitude]); lastHp = [c.latitude, c.longitude]; } }
+  else lastHp = [c.latitude, c.longitude];
+  if (h !== null) { lastHp = [c.latitude, c.longitude]; hdg = h; hdgAcc += angDiff(((hdgAcc % 360) + 360) % 360, hdg) * 0.35; huRot(); }
+  if (map && fix) map.setView([fix.lat, fix.lon], map.getZoom(), { animate: false });
+}
+$('huBtn').onclick = () => huSet(!hu);
+$('huIn').onclick = () => { if (map) map.setZoom(map.getZoom() + 1); };
+$('huOut').onclick = () => { if (map) map.setZoom(map.getZoom() - 1); };
+window.addEventListener('resize', () => { if (hu) huSize(); });
+
+/* ---------- コース登録（地図をタップ） ---------- */
+$('setupBtn').onclick = () => { if (!ADMIN) return; if (day && day.started && !day.fin && !tapMode) { toast('ミッション中は、コースを変えられません。変えるときは、ミッションの「↺ やり直す」を押してください。'); return; } if (day && day.fin) { toast('ミッション終了後は、コースを変えられません。「次のミッションへ進む」を押してください。'); return; } if (tapMode) { cancelTap(); setupOpen = false; renderAll(); return; } setupOpen = !setupOpen; renderAll(); };
+function bar(t) { const d = $('tapBar'); if (tapMode) { tapBarRender(); return; } d.textContent = t || ''; d.classList.toggle('hide', !t); }
+let tapPrev = null;
+function tapBarRender() {
+  const d = $('tapBar'); d.classList.remove('pk'); if (!tapMode) { d.innerHTML = ''; d.classList.add('hide'); return; }
+  if (tapMode === 'ss' && ssPick) { pickBarRender(d); return; }
+  const k = tapMode, t = k === 'ss' ? (tmpA ? '👆 次は、SS' + (tapIdx + 1) + 'のゴール地点「B」をタップしてください' : '👆 地図をタップして、SS' + (tapIdx + 1) + 'のスタート地点「A」を選んでください') : '👆 地図をタップして、' + LAB[k] + (k === 'goal' ? '' : (tapIdx + 1)) + 'の場所を選んでください';
+  d.innerHTML = '<div class="tt"></div>' + (k === 'ss' && tmpA ? '<button type="button" class="btn" id="tapRedoA">↩ A地点を選び直す</button>' : '') + '<button type="button" class="btn r" id="tapCancel">✕ キャンセル</button>';
+  d.firstChild.textContent = t; d.classList.remove('hide');
+  const ra = $('tapRedoA'); if (ra) ra.onclick = () => { tmpA = null; tapBarRender(); drawMap(); };
+  $('tapCancel').onclick = cancelTap;
+}
+function cancelTap() {
+  if (!tapMode) return; const p = tapPrev; tapMode = null; tmpA = null; ssPick = null; clearCands();
+  if (p) { if (p.k === 'goal') course.goal = p.v; else course[p.k][p.i] = p.v; saveCourse(); }
+  tapPrev = null; bar(''); fitted = false; renderAll(); toast('登録をキャンセルしました（元の内容に戻しました）');
+}
+function beginTap(k, i) {
+  if (!map) return; tapPrev = { k, i: i || 0, v: k === 'goal' ? course.goal : course[k][i || 0] };
+  if (hu) huSet(false); ssPick = null; clearCands(); tapMode = k; tapIdx = i || 0; tmpA = null; focus = null; if (k === 'goal') course.goal = null; else course[k][tapIdx] = null;
+  tapBarRender();
+  if (fix && !fitted) map.setView([fix.lat, fix.lon], 14);
+  $('map').scrollIntoView({ behavior: 'smooth', block: 'center' }); renderAll();
+}
+async function onTap(lat, lon) {
+  const k = tapMode, idx = tapIdx;
+  if (k === 'ss' && ssPick) { if (ssPick.mode === 'via') { if (!ssPick.busy) addVia(lat, lon); } else if (!ssPick.busy) toast('色のついた線をタップして、ルートを決めてください。'); return; }
+  if (k === 'ss') {
+    if (!tmpA) { tmpA = [lat, lon]; tapBarRender(); drawMap(); return; }
+    startPick(idx, tmpA, [lat, lon]); return;
+  } else if (k === 'goal') { course.goal = [lat, lon]; tapMode = null; tapPrev = null; saveCourse(); bar(''); toast('✅ ゴールを登録しました'); }
+  else if (k) { course[k][idx] = [lat, lon]; tapMode = null; tapPrev = null; saveCourse(); bar(''); toast('✅ ' + LAB[k] + (idx + 1) + 'を登録しました'); }
+  fitted = false; renderAll();
+}
+
+/* ---------- SSのルートを決める（候補2本から選ぶ／経由地で引き直す） ---------- */
+let ssPick = null;
+const ROUTE_COL = ['#1768c8', '#e07b00'], ROUTE_ICO = ['🔵', '🟠'], VIA_COL = '#7b3fd1', MAX_VIA = 3;
+const paceKFor = idx => (PACE[paceBy[idx]] ? paceBy[idx] : pace);
+function clearCands() { try { if (candLayer) candLayer.clearLayers(); } catch (e) { /* noop */ } }
+function mergeAnn(legs) {
+  const o = { distance: [], maxspeed: [] };
+  for (const lg of legs || []) { const an = lg.annotation; if (!an || !an.distance || !an.maxspeed) return null; an.distance.forEach(x => o.distance.push(x)); an.maxspeed.forEach(x => o.maxspeed.push(x)); }
+  return o;
+}
+async function fetchRoutes(pts, alt) {
+  const cs = pts.map(c => c[1] + ',' + c[0]).join(';');
+  const r = await fetch('https://api.mapbox.com/directions/v5/mapbox/driving/' + cs + '?overview=full&geometries=geojson&annotations=distance,maxspeed' + (alt ? '&alternatives=true' : '') + '&access_token=' + MB_TOKEN);
+  const j = await r.json(); if (!j.routes || !j.routes.length) return [];
+  return j.routes.slice(0, alt ? 2 : 1).map(rt => { let prof = null; try { prof = buildProf(mergeAnn(rt.legs), rt.distance); } catch (e) { prof = null; }
+    return { dist: rt.distance, sec: rt.duration, line: rt.geometry.coordinates.map(c => [c[1], c[0]]), prof }; });
+}
+function finishSS(idx, a, b, r, via) {
+  clearCands(); ssPick = null; tapMode = null; tmpA = null; tapPrev = null;
+  const it = { a, b, dist: r.dist, sec: Math.max(30, Math.round(r.sec)), line: r.line }; if (r.prof) it.prof = r.prof; if (via && via.length) it.via = via;
+  course.ss[idx] = it; saveCourse(); bar('');
+  toast('✅ SS' + (idx + 1) + 'を登録しました　' + fmtD(it.dist) + '／設定タイム ' + fmtS(setSec(it)));
+  fitted = false; renderAll();
+}
+
+/* 候補が1本しか返ってこないとき、別の道を通る候補をもう1本さがします（進行方向の左右に経由地をずらして引く） */
+function ptSegM(p, a, b) { const k = Math.cos(p[0] * Math.PI / 180), ax = (a[1] - p[1]) * k * 111320, ay = (a[0] - p[0]) * 111320, bx = (b[1] - p[1]) * k * 111320, by = (b[0] - p[0]) * 111320, dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy; let t = L2 ? -(ax * dx + ay * dy) / L2 : 0; t = Math.max(0, Math.min(1, t)); const x = ax + t * dx, y = ay + t * dy; return Math.sqrt(x * x + y * y); }
+function nearLineM(p, line) { let m = 1e9; for (let i = 0; i < line.length - 1; i++) { const d = ptSegM(p, line[i], line[i + 1]); if (d < m) m = d; if (m < 5) break; } return m; }
+function overlapFrac(cand, main) { const n = cand.length, st = Math.max(1, Math.floor(n / 150)); let tot = 0, near = 0; for (let i = 0; i < n; i += st) { tot++; if (nearLineM(cand[i], main) < 30) near++; } return tot ? near / tot : 1; }
+async function extraRoute(a, b, main) {
+  if (!main.line || main.line.length < 2) return null;
+  const half = main.dist / 2; let acc = 0, mi = Math.floor(main.line.length / 2);
+  for (let i = 0; i < main.line.length - 1; i++) { acc += dist(main.line[i][0], main.line[i][1], main.line[i + 1][0], main.line[i + 1][1]); if (acc >= half) { mi = i; break; } }
+  const m = main.line[mi], k = Math.cos(m[0] * Math.PI / 180), dx = (b[1] - a[1]) * k, dy = b[0] - a[0], len = Math.sqrt(dx * dx + dy * dy) || 1;
+  const off = Math.min(2500, Math.max(300, dist(a[0], a[1], b[0], b[1]) * 0.35)) / 111320;
+  const vias = [[m[0] + (dx / len) * off, m[1] + (-dy / len) * off / k], [m[0] - (dx / len) * off, m[1] - (-dy / len) * off / k]];
+  const rs = await Promise.all(vias.map(v => fetchRoutes([a, v, b], false).then(x => x[0] || null).catch(() => null)));
+  const ok = rs.filter(r => r && r.line && r.dist <= main.dist * 2 && r.dist >= main.dist * 0.8 && overlapFrac(r.line, main.line) < 0.75).sort((x, y) => x.dist - y.dist);
+  return ok[0] || null;
+}
+async function startPick(idx, a, b) {
+  const pk = ssPick = { idx, a, b, routes: [], via: [], mode: 'choose', custom: null, busy: true, prev: (tapPrev && tapPrev.k === 'ss' && tapPrev.v && tapPrev.v.line) ? tapPrev.v.line : null };
+  tapBarRender(); drawMap();
+  let rs = []; try { rs = await fetchRoutes([a, b], true); } catch (e) { rs = []; }
+  if (ssPick !== pk) return; if (rs.length) { pk.busy = true; } else pk.busy = false;
+  if (!rs.length) { const d = dist(a[0], a[1], b[0], b[1]) * 1.3; finishSS(idx, a, b, { dist: d, sec: d / (FALLBACK_KMH / 3.6), line: null, prof: null }, null); return; }   /* 通信できないときは、これまでどおり直線×1.3と時速40kmで計算 */
+  if (rs.length >= 2) pk.busy = false;
+  if (rs.length < 2) { try { const x = await extraRoute(a, b, rs[0]); if (ssPick !== pk) return; if (x) rs.push(x); } catch (e) { /* noop */ } pk.busy = false; }
+  pk.routes = rs; drawCands(pk, true); tapBarRender();
+}
+function drawCands(pk, fit) {
+  if (!map || !candLayer) return; clearCands(); const all = [], via = pk.mode === 'via';
+  if (pk.prev) { L.polyline(pk.prev, { color: COL.ss, weight: 4, opacity: .85, dashArray: '2 8', interactive: false }).addTo(candLayer); all.push.apply(all, pk.prev); }
+  pk.routes.forEach((r, i) => {
+    if (!r.line) return; all.push.apply(all, r.line);
+    if (via) { L.polyline(r.line, { color: ROUTE_COL[i], weight: 4, opacity: .3, interactive: false }).addTo(candLayer); return; }
+    const pick = () => { if (ssPick === pk && pk.mode === 'choose' && !pk.busy) finishSS(pk.idx, pk.a, pk.b, r, null); };
+    L.polyline(r.line, { color: ROUTE_COL[i], weight: 6, opacity: .9, interactive: false }).addTo(candLayer);
+    L.polyline(r.line, { color: '#000', weight: 26, opacity: .01, bubblingMouseEvents: false }).on('click', pick).bindTooltip('ルート' + (i + 1) + '　' + fmtD(r.dist), { sticky: true }).addTo(candLayer);
+  });
+  if (via && pk.custom && pk.custom.line) { all.push.apply(all, pk.custom.line); L.polyline(pk.custom.line, { color: VIA_COL, weight: 7, opacity: .95, interactive: false }).addTo(candLayer); }
+  if (via) pk.via.forEach((v, i) => L.marker(v, { icon: pin(VIA_COL, String(i + 1)) }).addTo(candLayer));
+  if (fit && all.length > 1) { try { map.fitBounds(L.latLngBounds(all), { padding: [30, 30], maxZoom: 17 }); } catch (e) { /* noop */ } }
+}
+async function recalcVia(pk) {
+  pk.busy = true; tapBarRender();
+  let rs = []; try { rs = await fetchRoutes([pk.a].concat(pk.via, [pk.b]), false); } catch (e) { rs = []; }
+  if (ssPick !== pk) return; pk.busy = false;
+  if (!rs.length) { pk.via.pop(); toast('その場所を通るルートを引けませんでした。別の場所をタップしてください。'); try { if (pk.via.length) { pk.busy = true; const r2 = await fetchRoutes([pk.a].concat(pk.via, [pk.b]), false); if (ssPick !== pk) return; pk.custom = r2[0] || null; pk.busy = false; } else pk.custom = null; } catch (e) { pk.busy = false; } }
+  else pk.custom = rs[0];
+  drawCands(pk, false); tapBarRender();
+}
+function addVia(lat, lon) { const pk = ssPick; if (!pk || pk.busy) return; if (pk.via.length >= MAX_VIA) { toast('経由地は' + MAX_VIA + 'か所までです。'); return; } pk.via.push([lat, lon]); drawCands(pk, false); recalcVia(pk); }
+function pickBarRender(d) {
+  const pk = ssPick, K = paceKFor(pk.idx); let t, h = ''; d.classList.add('pk');
+  if (pk.busy) t = '⏳ ルートを計算しています…';
+  else if (pk.mode === 'choose') {
+    t = (pk.routes.length > 1 ? '👆 候補を2本出しました。通りたい線をタップして決めてください（ボタンでも決められます）' : '👆 候補は1本でした（別の道は見つかりませんでした）。線をタップして決めるか、「どちらでもない」で道を指定してください') + (pk.prev ? '　赤の点線は、いままでのルートです。' : '');
+    pk.routes.forEach((r, i) => { h += '<button type="button" class="btn" data-rt="' + i + '" style="border-color:' + ROUTE_COL[i] + '">' + ROUTE_ICO[i] + ' ルート' + (i + 1) + '：' + fmtD(r.dist) + '／設定 ' + fmtS(setSecK(r, K)) + '</button>'; });
+    h += '<button type="button" class="btn" id="pkVia">🗺 どちらでもない（経由地を指定）</button><button type="button" class="btn" id="pkRedoB">↩ B地点を選び直す</button><button type="button" class="btn" id="pkRedoA">↩ A地点から選び直す</button>';
+  } else {
+    t = '👆 通りたい道の途中を、地図でタップしてください（経由地 ' + pk.via.length + '／' + MAX_VIA + '）。タップするたびに、新しい線（紫）を引きます。';
+    if (pk.custom) h += '<button type="button" class="btn g" id="pkOk">✅ 紫のルートに決定：' + fmtD(pk.custom.dist) + '／設定 ' + fmtS(setSecK(pk.custom, K)) + '</button>';
+    if (pk.via.length) h += '<button type="button" class="btn" id="pkUndo">↩ 経由地を1つ戻す</button>';
+    h += '<button type="button" class="btn" id="pkBack">◀ 候補に戻る</button>';
+  }
+  d.innerHTML = '<div class="tt"></div>' + h + '<button type="button" class="btn r" id="tapCancel">✕ キャンセル</button>'; d.firstChild.textContent = t; d.classList.remove('hide');
+  const on = (id, f) => { const e = $(id); if (e) e.onclick = f; };
+  d.querySelectorAll('[data-rt]').forEach(b => { b.onclick = () => { if (pk.busy || ssPick !== pk) return; const r = pk.routes[+b.dataset.rt]; if (r) finishSS(pk.idx, pk.a, pk.b, r, null); }; });
+  on('pkVia', () => { pk.mode = 'via'; pk.via = []; pk.custom = null; drawCands(pk, false); tapBarRender(); });
+  on('pkBack', () => { pk.mode = 'choose'; pk.via = []; pk.custom = null; drawCands(pk, false); tapBarRender(); });
+  on('pkOk', () => { if (!pk.busy && pk.custom) finishSS(pk.idx, pk.a, pk.b, pk.custom, pk.via.slice()); });
+  on('pkUndo', () => { if (pk.busy) return; pk.via.pop(); if (pk.via.length) { drawCands(pk, false); recalcVia(pk); } else { pk.custom = null; drawCands(pk, false); tapBarRender(); } });
+  on('pkRedoB', () => { ssPick = null; clearCands(); tapBarRender(); drawMap(); });
+  on('pkRedoA', () => { ssPick = null; clearCands(); tmpA = null; tapBarRender(); drawMap(); });
+  on('tapCancel', cancelTap);
+}
+
+const btnS = 'style="min-height:40px;font-size:14px;padding:0 10px"';
+let setupOpen = null;
+try { const p = JSON.parse(localStorage.getItem('sampleTT_profile') || 'null'); if (p) { $('nick').value = p.nick || ''; $('veh').value = p.veh || ''; } } catch (e) { /* noop */ }
+function renderPace() { if (!$('paceBox')) return; $('paceBox').innerHTML = Object.keys(PACE).map(k => '<button type="button" class="btn' + (k === pace ? ' g' : '') + '" data-p="' + k + '" style="min-height:44px;font-size:15px;padding:0 4px">' + PACE[k][0] + '</button>').join('');
+  $('paceBox').querySelectorAll('[data-p]').forEach(b => b.onclick = () => { if (run) { toast('計測中は変えられません。'); return; } pace = b.dataset.p; try { localStorage.setItem('sampleTT_pace', pace); } catch (e) { /* noop */ } renderAll(); }); }
+const saveProf = () => { try { localStorage.setItem('sampleTT_profile', JSON.stringify({ nick: $('nick').value, veh: $('veh').value })); } catch (e) { /* noop */ } };
+$('nick').oninput = saveProf; $('veh').oninput = saveProf;
+function renderSteps() {
+  if (setupOpen === null) setupOpen = !anyReg() && !course.goal; const open = setupOpen || !!tapMode;
+  $('setupBtn').textContent = open ? '▲ 閉じる' : '⚙ コースをつくる・変える'; $('steps').classList.toggle('hide', !open); $('profBox').classList.toggle('hide', !open);
+  let h = '';
+  ['ss', 'view', 'historic'].forEach(k => {
+    const idxs = regs(k); if (tapMode === k && !idxs.includes(tapIdx)) idxs.push(tapIdx); idxs.sort();
+    h += '<div class="step" style="background:#f3f6fb;border-radius:10px;padding:6px 10px"><div class="nm">' + LAB[k] + '（' + nReg(k) + '/' + limit() + '）</div><button class="btn g" ' + btnS + ' data-a="' + k + '"' + (nReg(k) >= SLOTS && tapMode !== k ? ' disabled' : '') + '>' + (nReg(k) >= limit() && tapMode !== k ? '🔒 追加' : '＋追加') + '</button></div>';
+    idxs.forEach(i => {
+      const it = course[k][i]; let st = it ? '✅ 登録済み' : '👆 地図をタップ中'; if (k === 'ss' && it) st = '✅ ' + fmtD(it.dist) + '・設定 ' + fmtS(setSec(it));
+      h += '<div class="step"><div class="nm">' + LAB[k] + (i + 1) + '<div class="st' + (it ? ' ok' : '') + '">' + st + '</div></div>' + (it ? '<button class="btn" ' + btnS + ' data-r="' + k + ':' + i + '">やり直す</button><button class="btn r" ' + btnS + ' data-d="' + k + ':' + i + '">消す</button>' : '') + '</div>';
+      if (k === 'ss' && it) h += '<div class="step" style="padding-top:0;border-top:0"><div class="nm" style="font-size:13px;color:var(--m)">設定タイムのペース</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;flex:1;max-width:260px">' + Object.keys(PACE).map(p => '<button type="button" class="btn' + (paceOf(it) === p ? ' g' : '') + '" data-sp="' + i + ':' + p + '" style="min-height:40px;font-size:14px;padding:0 2px">' + PACE[p][0] + '</button>').join('') + '</div></div>';
+    });
+  });
+  const g = course.goal;
+  h += '<div class="step" style="background:#f3f6fb;border-radius:10px;padding:6px 10px"><div class="nm">ゴール<div class="st' + (g ? ' ok' : '') + '">' + (g ? '✅ 登録済み' : (tapMode === 'goal' ? '👆 地図をタップ中' : '未登録')) + '</div></div><button class="btn' + (g ? '' : ' g') + '" ' + btnS + ' data-r="goal:0">' + (g ? 'やり直す' : '登録') + '</button>' + (g ? '<button class="btn r" ' + btnS + ' data-dg="1">消す</button>' : '') + '</div>';
+  $('steps').innerHTML = h;
+  $('steps').querySelectorAll('[data-a]').forEach(b => b.onclick = () => { const k = b.dataset.a; const i = course[k].findIndex(v => !v); if (!premium && (i < 0 || i >= limit())) { showUpsell(); return; } beginTap(k, i < 0 ? 0 : i); });
+  $('steps').querySelectorAll('[data-dg]').forEach(b => b.onclick = () => { course.goal = null; day.goal = false; saveDay(); saveCourse(); fitted = false; renderAll(); });
+  $('steps').querySelectorAll('[data-sp]').forEach(b => b.onclick = () => { if (run) { toast('計測中は変えられません。'); return; } const [i, p] = b.dataset.sp.split(':'); paceBy[+i] = p; try { localStorage.setItem('sampleTT_paceBy', JSON.stringify(paceBy)); } catch (e) { /* noop */ } renderAll(); });
+  $('steps').querySelectorAll('[data-r]').forEach(b => b.onclick = () => { const [k, i] = b.dataset.r.split(':'); beginTap(k, +i); });
+  $('steps').querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const [k, i] = b.dataset.d.split(':'); course[k][+i] = null; saveCourse(); fitted = false; renderAll(); });
+}
+
+/* ---------- ミッション ---------- */
+let selSS = 0;
+function renderStrip() {
+  $('total').textContent = total(); $('target').textContent = target(); { const tg = target(); $('barFill').style.width = (tg > 0 ? Math.min(100, total() / tg * 100) : 0) + '%'; }
+  let h = '';
+  ['ss', 'view', 'historic'].forEach(k => regs(k).forEach(i => {
+    const done = k === 'ss' ? !!day.ss[i] : day[k][i];
+    const isRun = k === 'ss' && run && run.i === i; const n = isRun ? '⏱ 計測中' : done ? '✅ ' + (k === 'ss' ? day.ss[i].pts : PT) + '点' : (k === 'ss' ? '設定 ' + fmtS(setSec(course.ss[i])) + '<br>満点 ' + ssMax(course.ss[i]) + '点' : '目標 ' + PT + '点');
+    h += '<button class="m k-' + k + (done ? ' done' : '') + (isRun ? ' run' : '') + (focus && focus.k === k && focus.i === i ? ' sel' : '') + '" data-k="' + k + '" data-i="' + i + '">' + ({ ss: '🏎 ', view: '📸 ', historic: '🚩 ' })[k] + (i + 1) + '<br>' + LAB[k] + '<span class="n">' + n + '</span></button>';
+  }));
+  if (course.goal) {
+    const gn = day.fin ? '✅ ゴール済み' : (day.goal ? 'ボタンを押す' : 'ゴール地点へ');
+    h += '<button class="m wide' + (day.fin ? ' done' : '') + (focus && focus.k === 'goal' ? ' sel' : '') + '" data-k="goal" data-i="0">🏁 ゴール<span class="n">' + gn + '</span></button>';
+  }
+  if (!h) h = '<div class="muted" style="grid-column:1/-1;text-align:center;padding:8px 0">' + (ADMIN ? '下の「コースをつくる・変える」から登録してください' : (SHOP ? '今月のミッションは、まだ準備中です' : '')) + '</div>';
+  $('strip').innerHTML = h;
+  $('strip').querySelectorAll('.m').forEach(b => b.onclick = () => {
+    const k = b.dataset.k, i = +b.dataset.i, has = k === 'goal' ? course.goal : course[k][i];
+    if (day.fin) return; focus = { k, i }; if (k === 'ss') selSS = i; renderStrip(); renderGo(); drawMap(); showFocus(true);
+  });
+}
+function renderRes() {
+  const rows = [];
+  regs('ss').forEach(i => { const s = day.ss[i]; if (s) rows.push(['SS' + (i + 1) + '　実走 ' + fmtS(s.actual) + ' ／ 設定 ' + fmtS(s.set) + ' ／ 誤差 ' + fmtErr(s.err) + ' ／ 満点 ' + (s.max != null ? s.max : (course.ss[i] ? ssMax(course.ss[i]) : '—')) + '点', s.pts + '点']); const y = Math.min(day.yae[i], YAE_MAX); if (y) rows.push(['SS' + (i + 1) + ' ヤエー ' + y + '回', y * YAE_PT + '点']); });
+  ['view', 'historic'].forEach(k => regs(k).forEach(i => { if (day[k][i]) rows.push([LAB[k] + (i + 1), PT + '点']); }));
+  if (day.fin) rows.push([day.complete ? '🎉 完走' : '🏁 ゴール', '']);
+  $('resCard').classList.toggle('hide', !rows.length);
+  $('res').innerHTML = rows.map(r => '<div class="res"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('') + (day.fin ? '<div class="res"><span><b>合計</b></span><b>' + total() + ' / ' + target() + ' 点</b></div>' : '');
+}
+let goIdx = null, nearA = null;
+const dEnd = (s, e) => fix ? dist(fix.lat, fix.lon, s[e][0], s[e][1]) : Infinity;
+const dMin = s => Math.min(dEnd(s, 'a'), dEnd(s, 'b'));
+const goalOf = r => { const q = course.ss[r.i]; return r.from === 'b' ? q.a : q.b; };
+function nextSS() { const l = regs('ss').filter(i => !day.ss[i]); if (!l.length) return null; return l.includes(selSS) ? selSS : l[0]; }
+function renderGo() {
+  { const r = !!run; if (document.body.classList.contains('running') !== r) { document.body.classList.toggle('running', r); setTimeout(() => { if (map) map.invalidateSize(); }, 80); } }
+  goIdx = (run || day.fin || !day.started) ? null : nextSS();
+  document.body.classList.toggle('hasgo', goIdx !== null);
+  if (goIdx !== null && fix && fix.acc <= ACC && Date.now() - lastFixAt < 15000) {
+    let bi = null, bd = Infinity; regs('ss').forEach(i => { if (day.ss[i]) return; const d = dMin(course.ss[i]); if (d <= START_NEAR && d < bd) { bd = d; bi = i; } });
+    if (bi !== null) { goIdx = bi; selSS = bi; }
+  } const show = goIdx !== null; $('goCard').classList.toggle('hide', !show); if (!show) return;
+  const s = course.ss[goIdx]; $('goTitle').textContent = 'SS' + (goIdx + 1);
+  const ds = dMin(s);
+  if (!(fix && ds <= START_NEAR && fix.acc <= ACC && Date.now() - lastFixAt < 15000)) nearA = null; else if (nearA !== goIdx) { nearA = goIdx; if (Date.now() > noAutoScrollUntil) setTimeout(() => { try { $('goBtn').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* noop */ } }, 80); }
+  $('goBtn').disabled = nearA !== goIdx; $('goBtn').textContent = nearA === goIdx ? '⏱ 計測スタート' : '⏱ スタート地点（AかB）に着くと押せます';
+  $('goInfo').textContent = '道のり ' + fmtD(s.dist) + '／設定 ' + fmtS(setSec(s)) + '／満点 ' + ssMax(s) + '点　A地点かB地点のどちらからでもスタートできます' + (fix ? '（Aまで ' + fmtD(dEnd(s, 'a')) + '／Bまで ' + fmtD(dEnd(s, 'b')) + '）' : '');
+}
+let nearPh = null, phTarget = null;
+function renderPhoto() {
+  const c = $('photoCard'), l = regs('view').filter(i => !day.view[i]);
+  if (!l.length || day.fin || !day.started) { const was0 = nearPh; c.classList.add('hide'); nearPh = null; if (run && was0 !== null) setTimeout(() => { try { $('runCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { /* noop */ } }, 700); return; }
+  let best = null;
+  if (fix) l.forEach(i => { const d = dist(fix.lat, fix.lon, course.view[i][0], course.view[i][1]); if (best === null || d < best.d) best = { i, d }; });
+  const near = best && fix.acc <= ACC && best.d <= NEAR; const wasPh = nearPh; nearPh = near ? best.i : null;
+  if (near && wasPh !== best.i && Date.now() > noAutoScrollUntil) setTimeout(() => { try { $('photoCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* noop */ } }, 80);
+  if (run && !near) { c.classList.add('hide'); if (wasPh !== null) setTimeout(() => { try { $('runCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { /* noop */ } }, 120); return; }
+  c.classList.remove('hide');
+  $('phBtn').disabled = !near; $('phBtn').textContent = near ? '📸 写真を撮る（+' + PT + '点）' : '📸 フォトポイントに近づくと押せます';
+  $('phInfo').textContent = near ? 'フォトポイント' + (best.i + 1) + ' に着きました！ 写真を1枚撮ると ' + PT + '点。' : (best ? 'フォトポイント' + (best.i + 1) + 'まで あと ' + fmtD(best.d) : '現在地を測っています…');
+}
+$('phBtn').onclick = () => { if (nearPh === null) return; phTarget = nearPh; $('phFile').click(); };
+$('phFile').onchange = e => {
+  const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f || phTarget === null || day.fin || !day.started) return;
+  const i = phTarget; phTarget = null; if (day.view[i]) return;
+  handlePhoto(f, i);
+};
+function renderFin() {
+  const on = !!course.goal && day.started; $('finCard').classList.toggle('hide', !on); if (!on) return; $('certBtn').classList.toggle('hide', !(day.fin && day.complete));
+  $('finBtn').disabled = !day.goal || day.fin;
+  $('finHint').textContent = day.fin ? (day.complete ? '🎉 完走しました！' : '🏁 ゴールしました（すべてのポイントを取っていないので、完走ではありません）') : (day.goal ? '「ゴール」ボタンを押すと終了します。' + (allDone() ? '（すべてのポイントを取ったので、完走になります）' : '（のこりポイント：' + remainTxt() + ' → 残っていると完走になりません）') : 'ゴール地点に着くとゴールできます。完走にするには、設定したポイントをすべて取ってください。のこり：' + remainTxt());
+}
+$('certBtn').onclick = showCertificate;
+function goalPopup() {
+  const lines = []; regs('ss').forEach(i => lines.push('SS' + (i + 1) + '　' + (day.ss[i] ? day.ss[i].pts : 0) + '点'));
+  const v = day.view.filter(Boolean).length, h = day.historic.filter(Boolean).length, y = day.yae.reduce((s, n) => s + Math.min(n, YAE_MAX), 0);
+  if (nReg('view')) lines.push('フォトポイント ' + v + '箇所　' + v * PT + '点'); if (nReg('historic')) lines.push('チェックポイント ' + h + '箇所　' + h * PT + '点'); lines.push('ヤエー（ボーナスポイント） ' + y + '回　' + y * YAE_PT + '点');
+  pop(day.complete ? '🎉 完走！おめでとうございます' : '🏁 ゴールしました', total(), lines.join('\n') + (day.complete ? '' : '\n\n※ のこりのポイントがあるため、完走証明は発行されません\n（のこり：' + remainTxt() + '）'), true, true, target(), day.complete);
+}
+$('finBtn').onclick = () => {
+  if (!day.goal || day.fin || !day.started) return; day.complete = allDone(); day.fin = true; day.yaeOpen = null; focus = null; saveDay(); try { winEnd(); } catch (e) { /* noop */ } renderAll(); sendAttempt();
+  goalPopup();
+};
+$('resultBtn').onclick = () => { if (day.fin) goalPopup(); };
+function resetDayState(mode) {
+  const prevBest = mode === 'next' ? Math.max(day.bestPrev || 0, total()) : mode === 'keep' ? (day.bestPrev || 0) : 0;
+  day = newDay(); day.bestPrev = prevBest; saveDay(); run = null; clearInterval(tick); focus = null; nearA = null; $('runCard').classList.add('hide');
+}
+$('nextBtn').onclick = () => {
+  if (!day.fin) return;
+  if (!ADMIN && !day.sent) { toast('先に、得点をサーバーに送ってください（「得点をもう一度送る」）。'); return; }
+  if (!ADMIN && SI && SI.mission && SI.mission.max_attempts - (SI.attempts_used || 0) <= 0) { toast('今月の挑戦は、すべて使いました。来月のミッションをお楽しみに！'); return; }
+  if (!confirm('次の挑戦へ進みます。今回の結果は、この画面から消えます（ランキングには、今月のいちばん良い1回の得点が使われます）。よろしいですか？')) return;
+  resetDayState('next'); lastSent = null; renderAll(); try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); } toast(ADMIN ? 'コースを確認して「▶ ミッションスタート」を押してください' : '準備ができたら「▶ ミッションスタート」を押してください'); if (!ADMIN) loadShop();
+};
+$('missReset').onclick = () => {
+  if (run) { toast('計測中は、リセットできません。先に「やめる」を押してください。'); return; }
+  const used = day.ss.some(Boolean) || day.view.some(Boolean) || day.historic.some(Boolean) || day.goal || day.fin;
+  if (!used) { if (!day.started) return; if (!confirm('スタート前に戻します（コースを変えられるようになります）。よろしいですか？')) return; day.started = false; saveDay(); focus = null; renderAll(); return; }
+  if (!premium) { showUpsell('無料お試しは、1日1回の記録までです。今日の記録をやり直すには、プレミアムが必要です。'); return; }
+  if (!confirm('このミッションを、最初からやり直します（コースの登録は残ります）。よろしいですか？')) return;
+  resetDayState('keep'); try { localStorage.removeItem(WIN + day.d); } catch (e) { /* noop */ } renderAll();
+};
+$('startBtn').onclick = async () => {
+  if (!day || day.started || day.fin) return; if (!anyReg() && !course.goal) { toast(ADMIN ? '先に「コースをつくる・変える」から、ミッションを登録してください。' : '今月のミッションは、まだ準備中です。'); return; }
+  if (!ADMIN) {
+    if (!user) { acctMsg = 'ミッションを始めるには、メールでログインしてください。'; renderAcct(); toAcct(); return; }
+    if (!SI || !SI.member) { acctMsg = 'ニックネームを入れて「参加する」を押してください。'; renderAcct(); toAcct(); return; }
+    if (!SI.mission) { toast('今月のミッションは、まだ準備中です。'); return; }
+    const left = SI.mission.max_attempts - (SI.attempts_used || 0);
+    if (!SI.running_attempt && left <= 0) { toast('今月の挑戦は、すべて使いました。来月のミッションをお楽しみに！'); return; }
+    if (!SI.running_attempt && !confirm('ミッションを始めます。今月の挑戦（のこり ' + left + ' 回）を1回使います。よろしいですか？')) return;
+    $('startBtn').disabled = true; let r = null;
+    try { const { data, error } = await sb.rpc('shop_attempt_start', { p_shop: SHOP }); if (error) throw error; r = data; } catch (e) { r = null; }
+    $('startBtn').disabled = false;
+    if (!r) { toast('スタートできませんでした。電波のよい所で、もう一度押してください。'); return; }
+    if (!r.ok) { toast(({ no_attempts_left: '今月の挑戦は、すべて使いました。', no_mission: '今月のミッションは、まだ準備中です。', not_member: 'ショップへの参加が必要です（下の「アカウント」から）。', login_required: 'ログインしてください。' })[r.error] || 'スタートできませんでした。'); loadShop(); return; }
+    day.attemptId = r.attempt_id; day.mid = SI.mission.id; if (r.resumed) toast('前回の挑戦の続きです（回数は増えません）');
+    SI.attempts_used = r.attempts_used; SI.running_attempt = r.attempt_id;
+  }
+  if (tapMode) cancelTap(); day.started = true; saveDay(); winMark(true); setupOpen = false; renderAll();
+  try { $('missionCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { /* noop */ } toast(ADMIN ? '▶ テスト走行スタート（記録は送られません）' : '▶ ミッションスタート！');
+};
+function renderAll() { { const pre = !!day && !day.started && !day.fin; $('startCard').classList.toggle('hide', !(pre && (anyReg() || course.goal))); renderShopUi(); }
+  { const ended = !!(day && day.fin); document.body.classList.toggle('ended', ended); $('nextCard').classList.toggle('hide', !ended); const used = ADMIN && !!day && !ended && !run && (day.started || day.ss.some(Boolean) || day.view.some(Boolean) || day.historic.some(Boolean) || day.goal); $('missReset').classList.toggle('hide', !used); } if (typeof scheduleScore === 'function') scheduleScore(); renderPace(); renderPhoto(); renderFin(); renderSteps(); renderStrip(); renderGo(); renderRes(); renderYae(); drawMap(); }
+
+/* ---------- GPS・到着 ---------- */
+let wid = null, run = null, tick = null, goalWarn = 0, lastFixAt = 0, prevFix = null, spd = 0;
+function calcSpeed(c) {
+  const now = Date.now(); let v = null;
+  if (typeof c.speed === 'number' && c.speed >= 0) { v = c.speed * 3.6; prevFix = { lat: c.latitude, lon: c.longitude, t: now }; }
+  else if (prevFix) {
+    const dt = (now - prevFix.t) / 1000, d = dist(prevFix.lat, prevFix.lon, c.latitude, c.longitude);
+    if (dt >= 1 && d > Math.max(c.accuracy || 0, 10)) { v = d / dt * 3.6; prevFix = { lat: c.latitude, lon: c.longitude, t: now }; }
+    else if (dt >= 4) { v = 0; prevFix = { lat: c.latitude, lon: c.longitude, t: now }; }
+  } else prevFix = { lat: c.latitude, lon: c.longitude, t: now };
+  return v;
+}
+/* 止まったら計測を止め、走り出してから7秒後に再開する（7秒のうちにまた止まったら、数え直す）。
+   5分間に3回止まったら渋滞モード（12km/h未満を停止、20km/h以上で走り出し）。除く時間の合計は10分まで。 */
+function newRun(i, from) { return { i, from, t0: Date.now(), acc: 0, last: Date.now(), moving: false, resumeAt: 0, moved: false, excl: 0, stops: [], jam: false, jamUsed: false, streak: 0 }; }
+function updateMove() {
+  const now = Date.now(), off = run.jam ? JAM_OFF : MOVE_OFF, on = run.jam ? JAM_ON : MOVE_ON;
+  if (run.moving && spd < off) {
+    run.moving = false; run.resumeAt = 0;
+    if (run.moved) { run.stops.push(now); run.stops = run.stops.filter(t => now - t < JAM_WINDOW); if (!run.jam && run.stops.length >= JAM_STOPS) { run.jam = true; run.jamUsed = true; } }
+  } else if (!run.moving && spd >= on) { run.moving = true; run.resumeAt = run.moved ? now + RESUME_MS : 0; run.moved = true; }
+}
+function runCounting() { return !!run && run.moving && Date.now() >= run.resumeAt; }
+function onFix(c) {
+  fix = { lat: c.latitude, lon: c.longitude, acc: c.accuracy }; lastFixAt = Date.now(); if (c.accuracy <= 50) trkAdd(c.latitude, c.longitude);
+  const v = calcSpeed(c); if (v !== null) { spd = spd * 0.2 + v * 0.8; if (run) updateMove(); }
+  const fp = guidePos(); $('gpsmsg').textContent = '現在地を取得中（精度 約' + Math.round(c.accuracy) + 'm）' + (fp ? '　目標まで ' + fmtD(dist(fix.lat, fix.lon, fp[0], fp[1])) : '');
+  if (me) me.setLatLng([fix.lat, fix.lon]); else if (map) me = L.circleMarker([fix.lat, fix.lon], { radius: 9, color: '#fff', weight: 3, fillColor: '#1768c8', fillOpacity: 1 }).addTo(map);
+  if (map && focusWait && focus && !day.fin && !hu) showFocus(false);
+  huFix(c); drawGuide();
+  if (map && !centeredOnce && !fitted && !anyReg() && !course.goal && !tapMode) { centeredOnce = true; map.setView([fix.lat, fix.lon], 14); }
+  if (c.accuracy <= ACC) {
+    ['historic'].forEach(k => regs(k).forEach(i => { if (!day[k][i] && !day.fin && day.started && dist(fix.lat, fix.lon, course[k][i][0], course[k][i][1]) <= NEAR) { day[k][i] = true; saveDay(); winMark(false); pop(LAB[k] + (i + 1) + ' 到着', PT); renderAll(); } }));
+    if (course.goal && !day.goal && !day.fin && day.started && !run && dist(fix.lat, fix.lon, course.goal[0], course.goal[1]) <= NEAR) {
+      day.goal = true; saveDay();
+      toast(allDone() ? '🏁 ゴール地点に到着！ 下の「ゴール」ボタンを押してください' : '🏁 ゴール地点に到着！ ゴールできます（のこりのポイントがあるので、完走にはなりません：' + remainTxt() + '）');
+      renderAll(); noAutoScrollUntil = Date.now() + 4000; [150, 700].forEach(ms => setTimeout(() => { try { $('finBtn').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* noop */ } }, ms));
+    }
+    if (run && Date.now() - run.t0 > 5000) { const g = goalOf(run); if (dist(fix.lat, fix.lon, g[0], g[1]) <= NEAR) finishRun(); }
+  }
+  renderGo(); renderPhoto();
+}
+function startWatch() { if (wid != null || !navigator.geolocation) return; try { wid = navigator.geolocation.watchPosition(p => onFix(p.coords), () => { $('gpsmsg').textContent = '現在地を取得できません。位置情報の許可を確認してください。'; }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 20000 }); } catch (e) { /* noop */ } }
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (run) { run.hideAt = Date.now(); run.accAtHide = run.acc; } }
+  else if (run && run.hideAt) { const now = Date.now(); run.acc = Math.max(run.acc, run.accAtHide + (now - run.hideAt)); run.hideAt = null; run.last = now; runUi(); }
+});
+document.addEventListener('visibilitychange', () => { if (!document.hidden && day && day.d !== today() && !run) { loadDay(); lastSent = null; focus = null; renderAll(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (wid != null) { try { navigator.geolocation.clearWatch(wid); } catch (e) { /* noop */ } wid = null; } startWatch(); } });
+
+/* ---------- SS計測（走行中はスピードだけ表示。信号などで止まっている間は計測を止め、走り出すと再開） ---------- */
+function runUi() {
+  if (!run) return; const s = course.ss[run.i], cnt = runCounting();
+  $('runSpeed').firstChild.nodeValue = String(run.moving ? Math.round(spd) : 0);
+  $('runState').textContent = cnt ? '⏱ 計測中' : '⏸ 計測を一時停止中'; $('runState').classList.toggle('paused', !cnt);
+  $('runSet').textContent = '設定 ' + fmtS(setSec(s)) + '／満点 ' + ssMax(s) + '点';
+  $('runInfo').textContent = 'ゴール（' + (run.from === 'b' ? 'A' : 'B') + '）まで ' + (fix ? fmtD(dist(fix.lat, fix.lon, goalOf(run)[0], goalOf(run)[1])) : '—');
+}
+function runTick() {
+  if (!run) return; const now = Date.now(), dt = now - run.last; run.last = now;
+  if (now - lastFixAt < 8000) {
+    if (runCounting() || run.excl >= MAX_EXCL) { run.acc += dt; run.streak += dt; if (run.jam && run.streak >= JAM_CALM) { run.jam = false; run.stops = []; } }
+    else { run.excl += dt; run.streak = 0; }
+  }
+  runUi();
+}
+$('goBtn').onclick = () => {
+  if (run || goIdx === null || !day.started) return; const i = goIdx, s = course.ss[i]; if (!fix || Date.now() - lastFixAt > 15000) { toast('現在地を測っています。少し待ってからもう一度押してください。'); return; }
+  if (fix.acc > ACC) { toast('GPSの精度が足りません（誤差 約' + Math.round(fix.acc) + 'm）。空の開けた場所で、少し待ってから押してください。'); return; }
+  const from = dEnd(s, 'a') <= dEnd(s, 'b') ? 'a' : 'b', d = dEnd(s, from); if (d > START_NEAR) { toast('スタート地点（AかB）まで あと ' + fmtD(d) + '。近づいてから押してください。'); return; }
+  day.yaeOpen = null; noAutoScrollUntil = 0; saveDay(); winMark(false); spd = 0; run = newRun(i, from);
+  $('runTitle').textContent = 'SS' + (i + 1); $('runCard').classList.remove('hide'); runUi();
+  clearInterval(tick); tick = setInterval(runTick, 250);
+  renderGo(); renderYae(); setTimeout(() => { try { $('runCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { /* noop */ } }, 150);
+  focus = { k: 'ss', i }; renderStrip(); drawMap(); nearA = null; if (map) { const fitRun = () => { map.invalidateSize(); const P = [s.a, s.b]; if (s.line) s.line.forEach(p => P.push(p)); map.fitBounds(L.latLngBounds(P), { padding: [10, 10], maxZoom: 19 }); }; setTimeout(fitRun, 250); setTimeout(fitRun, 800); }
+};
+function finishRun() {
+  const i = run.i, s = course.ss[i], actual = run.acc / 1000, err = actual - setSec(s), pts = ssPts(s, err), exclS = Math.round(run.excl / 1000);
+  clearInterval(tick); run = null; focus = null; $('runCard').classList.add('hide'); day.ss[i] = { actual, err, pts, set: setSec(s), max: ssMax(s), excl: exclS }; day.yaeOpen = i; saveDay();
+  renderAll(); setTimeout(() => { try { $('yaeCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* noop */ } }, 150); pop('SS' + (i + 1) + ' ゴール', pts, '実走 ' + fmtS(actual) + '　設定 ' + fmtS(setSec(s)) + '　誤差 ' + fmtErr(err) + '　満点 ' + ssMax(s) + '点');
+}
+$('runCancel').onclick = () => { clearInterval(tick); run = null; focus = null; $('runCard').classList.add('hide'); renderAll(); };
+$('reset').onclick = () => {
+  const used = day.ss.some(Boolean) || day.view.some(Boolean) || day.historic.some(Boolean) || day.goal || day.fin;
+  if (!premium && used) { showUpsell('無料お試しは、1日1回の記録までです。今日の記録をやり直すには、プレミアムが必要です。'); return; }
+  if (!confirm('今日の記録を消します（コースの登録は残ります）。よろしいですか？')) return; day = newDay(); saveDay(); try { localStorage.removeItem(WIN + day.d); } catch (e) { /* noop */ } run = null; clearInterval(tick); focus = null; $('runCard').classList.add('hide'); renderAll(); };
+
+/* ---------- ヤエー（各SSの終了後に使えます。次のミッションを始めると使えなくなります） ---------- */
+let yAudio = null;
+function renderYae() {
+  const on = day.yaeOpen !== null && !run && !day.fin; $('yaeCard').classList.toggle('hide', !on); if (!on) return;
+  const i = day.yaeOpen, left = Math.max(0, YAE_MAX - day.yae[i]); $('yTitle').textContent = '🖐 ヤエー（SS' + (i + 1) + '）'; $('yRemain').textContent = 'のこり ' + left + ' 回';
+  $('yBtn').disabled = left <= 0;
+  $('yHint').textContent = left <= 0 ? 'このSSのヤエーは上限に達しました。' : 'ヤエーをしたら押してください（1回' + YAE_PT + '点・このSSで最大' + YAE_MAX + '回）。次のSSを始めるか、ゴールすると使えなくなります。';
+}
+$('yBack').onclick = () => { try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); } };
+$('yBtn').onclick = () => {
+  const i = day.yaeOpen; if (i === null || run || day.fin || day.yae[i] >= YAE_MAX) return;
+  try { if (!yAudio) { yAudio = new Audio(YAE_WAV); yAudio.preload = 'auto'; } const a = yAudio.cloneNode(true); a.volume = 1; const pr = a.play(); if (pr && pr.catch) pr.catch(() => { /* noop */ }); } catch (e) { /* noop */ }
+  try { if (navigator.vibrate) navigator.vibrate(30); } catch (e) { /* noop */ }
+  const pl = document.createElement('span'); pl.className = 'yp'; pl.textContent = '+' + YAE_PT; $('yWrap').appendChild(pl); setTimeout(() => pl.remove(), 900);
+  day.yae[i]++; try { evAdd('yae', 'ヤエー！', YAE_PT); } catch (e) { /* noop */ } saveDay(); renderStrip(); renderRes(); renderYae();
+};
+
+/* ---------- ショップ版：アカウント（メールのコードでログイン） ---------- */
+let sb = null, user = null, SI = null, lastSent = null, isAdmin = false;
+try { sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }); } catch (e) { sb = null; }
+let acctMsg = '', acctStep = 'mail', acctMail = '';
+const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const nickVal = () => ($('nick').value || '').trim();
+function scheduleScore() { /* ショップ版は、ゴールのときに得点をまとめて送ります（sendAttempt） */ }
+function showUpsell(msg) { if (msg) toast(msg); }
+function toAcct() { setTimeout(() => { try { $('acct').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { /* noop */ } }, 80); }
+const curYm = () => today().slice(0, 7);
+const addYm = (ym, k) => { let [y, m] = ym.split('-').map(Number); m += k; while (m > 12) { m -= 12; y++; } while (m < 1) { m += 12; y--; } return y + '-' + String(m).padStart(2, '0'); };
+const ymTxt = ym => ym.replace('-', '年').replace(/年0?/, '年') + '月';
+
+function renderAcct() {
+  let h = '';
+  if (!sb) h = '<div class="muted">アカウント機能を読み込めませんでした。通信を確認して、ページを開き直してください。</div>';
+  else if (!user) {
+    h += '<div class="muted">' + (ADMIN ? '管理者のメールアドレスでログインしてください。' : 'ミッションに参加するには、メールでログインします。一度ログインすれば、次の月もそのまま参加できます。') + '</div>';
+    if (acctStep === 'mail') h += '<input id="aMail" type="email" inputmode="email" autocomplete="email" placeholder="メールアドレス" value="' + esc(acctMail) + '"><div class="row"><button id="aSend" class="btn g" style="flex:1">ログイン用のメールを送る</button></div>';
+    else h += '<div style="margin-top:8px;font-weight:700">' + esc(acctMail) + ' にログイン用のメールを送りました。メールに書かれた数字のコードを、下の欄に入れてください。</div><input id="aCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="メールの数字コード" style="margin-top:8px;font-size:22px;letter-spacing:4px;text-align:center"><div class="row"><button id="aVerify" class="btn g" style="flex:1">コードでログインする</button></div><div class="muted" style="margin-top:6px">ブラウザで開くときは、メールの「ログインする」ボタンでもログインできます。</div><div class="muted">届かないときは、迷惑メールのフォルダも見てください。</div><div class="row"><button id="aBack" class="btn" style="flex:1">メールアドレスを入れ直す</button></div>';
+  } else {
+    h += '<div class="muted">ログイン中：' + esc(user.email || '') + '</div>';
+    if (!ADMIN && SHOP && SI && SI.ok) {
+      h += '<div style="margin-top:10px;font-weight:900">🏍 ' + esc(SI.shop.name) + (SI.member ? ' に参加中' : ' に参加する') + '</div>';
+      h += '<label class="muted" for="aNick" style="display:block;margin-top:6px">ニックネーム（ランキングに出ます）</label><input id="aNick" maxlength="20" placeholder="例：くに" value="' + esc(SI.member ? SI.member.nickname : nickVal()) + '">';
+      h += '<label class="muted" for="aVeh" style="display:block;margin-top:6px">車両名（任意・ランキングに出ます）</label><input id="aVeh" maxlength="30" placeholder="例：FLHX" value="' + esc(SI.member ? (SI.member.vehicle || '') : ($('veh').value || '')) + '">';
+      h += '<div class="row"><button id="aJoin" class="btn g" style="flex:1">' + (SI.member ? '保存する' : '参加する') + '</button></div>';
+    }
+    h += '<div class="row"><button id="aOut" class="btn" style="flex:1;min-height:44px;font-size:15px">ログアウト</button></div>';
+  }
+  if (acctMsg) h += '<div style="margin-top:8px;font-weight:700;color:#b03a2e">' + esc(acctMsg) + '</div>';
+  $('acctBody').innerHTML = h;
+  const on = (id, f) => { const e = $(id); if (e) e.onclick = f; };
+  on('aSend', async () => {
+    const m = ($('aMail').value || '').trim(); if (!/^\S+@\S+\.\S+$/.test(m)) { acctMsg = 'メールアドレスを正しく入れてください。'; renderAcct(); return; }
+    $('aSend').disabled = true; acctMail = m; acctMsg = '';
+    const { error } = await sb.auth.signInWithOtp({ email: m, options: { shouldCreateUser: true, emailRedirectTo: location.origin + '/' + (SHOP && !ADMIN ? '?shop=' + encodeURIComponent(SHOP) : (ADMIN ? '?admin=1' : '')) } });
+    if (error) { acctMsg = '送れませんでした：' + error.message; } else { acctStep = 'code'; acctMsg = ''; } renderAcct();
+  });
+  on('aVerify', async () => {
+    const c = ($('aCode').value || '').trim(); if (!c) return; $('aVerify').disabled = true;
+    const { error } = await sb.auth.verifyOtp({ email: acctMail, token: c, type: 'email' });
+    if (error) { acctMsg = '確認コードが違うか、期限切れです。'; renderAcct(); } else { acctMsg = ''; acctStep = 'mail'; }
+  });
+  on('aBack', () => { acctStep = 'mail'; acctMsg = ''; renderAcct(); });
+  on('aOut', async () => { if (run) { toast('計測中は、ログアウトできません。'); return; } await sb.auth.signOut(); });
+  on('aJoin', async () => {
+    const n = ($('aNick').value || '').trim(), v = ($('aVeh').value || '').trim();
+    if (!n) { acctMsg = 'ニックネームを入れてください。'; renderAcct(); return; }
+    $('aJoin').disabled = true; let r = null;
+    try { const { data, error } = await sb.rpc('shop_join', { p_shop: SHOP, p_nick: n, p_vehicle: v }); if (!error) r = data; } catch (e) { r = null; }
+    if (r && r.ok) { acctMsg = ''; toast(SI && SI.member ? '✅ 保存しました' : '🏍 参加しました！ 「▶ ミッションスタート」で始められます'); $('nick').value = n; $('veh').value = v; await loadShop(); }
+    else { acctMsg = r && r.error === 'bad_nickname' ? 'ニックネームは20文字までです。' : '保存できませんでした。もう一度お試しください。'; renderAcct(); }
+  });
+}
+if (sb) {
+  sb.auth.onAuthStateChange((ev, session) => { const was = user ? user.id : null; user = session ? session.user : null; if (ev === 'SIGNED_OUT') acctStep = 'mail'; if ((user ? user.id : null) !== was) setTimeout(() => { renderAcct(); loadShop(); }, 0); });
+  sb.auth.getSession().then(({ data }) => { user = data.session ? data.session.user : null; renderAcct(); loadShop(); });
+}
+
+/* ---------- ショップ版：ショップ・今月のミッション・挑戦 ---------- */
+function shopBoot() {
+  if (ADMIN) { $('admCard').classList.remove('hide'); $('resetCard').classList.remove('hide'); $('hPlan').textContent = '🛠 管理'; $('hShop').textContent = 'Rally GP ショップ'; return; }
+  $('setup').classList.add('hide'); $('hPlan').classList.add('hide');
+  if (!SHOP) { $('noShop').classList.remove('hide'); ['missionCard', 'mapCard', 'rankCard', 'movCard', 'acct'].forEach(id => $(id).classList.add('hide')); }
+}
+/* サーバーのミッションのコースを、アプリのコースにする */
+function applyCourse(c) {
+  c = c || {}; course = { ss: blank3(), view: blank3(), historic: blank3(), goal: null };
+  ['ss', 'view', 'historic'].forEach(k => { if (Array.isArray(c[k])) course[k] = blank3().map((_, i) => c[k][i] || null); });
+  course.goal = c.goal || null; pace = PACE[c.pace] ? c.pace : 'normal'; paceBy = (c.paceBy && typeof c.paceBy === 'object') ? c.paceBy : {}; fitted = false;
+}
+async function loadShop() {
+  if (ADMIN) { admInit(); return; }
+  if (!SHOP || !sb) return;
+  let r = null; try { const { data, error } = await sb.rpc('shop_info', { p_shop: SHOP }); if (!error) r = data; } catch (e) { r = null; }
+  if (!r) { $('mTitle').textContent = '読み込めませんでした。電波のよい所で、開き直してください。'; return; }
+  if (!r.ok) { $('noShop').classList.remove('hide'); $('noShop').querySelector('.muted').textContent = 'ショップが見つかりませんでした。ショップから届いたリンクを、もう一度開いてください。'; ['missionCard', 'mapCard', 'rankCard', 'movCard'].forEach(id => $(id).classList.add('hide')); return; }
+  SI = r; $('hShop').textContent = r.shop.name; document.title = r.shop.name + '｜Rally GP';
+  if (r.member) { $('nick').value = r.member.nickname || ''; $('veh').value = r.member.vehicle || ''; }
+  const mid = r.mission ? r.mission.id : null;
+  if (!run) { if (day.mid && day.mid !== mid) { day = newDay(); saveDay(); focus = null; } applyCourse(r.mission ? r.mission.course : null); }
+  if (day.fin && day.attemptId && !day.sent) sendAttempt();
+  renderAcct(); renderAll(); loadRank();
+}
+function renderShopUi() {
+  if (!$('startInfo') || !day) return;
+  const m = SI && SI.mission;
+  $('mTitle').textContent = ADMIN ? '🛠 テスト走行（記録は送られません）' : (m ? '🎯 ' + (m.title || ymTxt(curYm()) + 'のミッション') : '');
+  if (ADMIN) { $('startInfo').textContent = '管理者のテスト走行です（記録は送られません）'; return; }
+  const left = m ? Math.max(0, m.max_attempts - (SI.attempts_used || 0)) : 0;
+  let t = m ? '今月の挑戦　のこり ' + left + ' / ' + m.max_attempts + ' 回' + (SI.best != null ? '（今月のベスト ' + r1(Number(SI.best)) + ' 点）' : '') : '';
+  if (m && SI.running_attempt) t = '途中の挑戦があります。押すと、続きから始めます（回数は増えません）。';
+  else if (m && left <= 0) t = '今月の挑戦は、すべて使いました。来月のミッションをお楽しみに！';
+  if (!user) t = 'ミッションを始めるには、下の「アカウント」からログインしてください。'; else if (SI && !SI.member) t = '下の「アカウント」で、ニックネームを入れて「参加する」を押してください。';
+  $('startInfo').textContent = t;
+  if (m && day.fin) {
+    $('nextBtn').classList.toggle('hide', left <= 0); $('nextBtn').textContent = '▶ 次の挑戦へ進む（のこり ' + left + ' 回）';
+    $('nextHint').textContent = left <= 0 ? 'おつかれさまでした！ 今月の挑戦は、すべて使いました。結果は、いつでも見られます。' : 'おつかれさまでした！ 結果は、いつでも見られます。';
+  }
+  $('sendRetry').classList.toggle('hide', !(day.fin && day.attemptId && !day.sent && !sending));
+  if (day.fin && day.sent && !$('sendMsg').textContent) { $('sendMsg').textContent = '✅ 得点を送りました'; $('sendMsg').style.color = 'var(--g)'; }
+  if (!day.fin) $('sendMsg').textContent = '';
+}
+/* ゴール：得点をサーバーに送る（送れなかったときは、あとで送り直せます） */
+let sending = false;
+async function sendAttempt() {
+  if (ADMIN || !day || !day.fin || !day.attemptId || day.sent || sending || !sb) return;
+  const msg = $('sendMsg'), red = t => { msg.textContent = t; msg.style.color = '#b03a2e'; };
+  if (!user) { red('ログインし直してから、「得点をもう一度送る」を押してください。'); renderShopUi(); return; }
+  sending = true; msg.textContent = '📤 得点を送っています…'; msg.style.color = ''; renderShopUi();
+  const detail = { ss: day.ss.map(x => x ? { pts: x.pts, err: Math.round(x.err), actual: Math.round(x.actual) } : null), view: day.view, historic: day.historic, yae: day.yae, d: day.d };
+  let r = null; try { const { data, error } = await sb.rpc('shop_attempt_finish', { p_attempt: day.attemptId, p_total: total(), p_complete: !!day.complete, p_detail: detail }); if (!error) r = data; } catch (e) { r = null; }
+  sending = false;
+  if (r && (r.ok || r.error === 'already_finished')) { day.sent = true; saveDay(); msg.textContent = '✅ 得点 ' + total() + ' 点を送りました。ランキングに反映されます。'; msg.style.color = 'var(--g)'; loadShop(); }
+  else if (r && r.error === 'month_closed') { day.sent = true; saveDay(); red('月が変わったため、この挑戦の得点は記録できませんでした（締め切りは月末23:59です）。'); }
+  else if (r && r.error === 'login_required') red('ログインし直してから、「得点をもう一度送る」を押してください。');
+  else if (r && r.error === 'attempt_not_found') { day.sent = true; saveDay(); red('この挑戦の記録が見つかりませんでした（別のアカウントでログインしている可能性があります）。'); }
+  else red('得点を送れませんでした。電波のよい所で「得点をもう一度送る」を押してください。');
+  renderShopUi();
+}
+$('sendRetry').onclick = sendAttempt;
+window.addEventListener('online', () => { if (day && day.fin && !day.sent) sendAttempt(); });
+
+/* フォトポイント：ショップ版は、写真は端末の中だけ（走行ムービー用）。撮ると5点 */
+function handlePhoto(file, i) { if (file) addPMark(file).catch(() => {}); day.view[i] = true; saveDay(); winMark(false); pop('フォトポイント' + (i + 1) + ' 撮影', PT, '写真をゲット！'); renderAll(); }
+
+/* ---------- ショップ版：ランキング（今月・先月・年間） ---------- */
+let rkTab = 'this';
+async function loadRank() {
+  const box = $('rkList'), sid = ADMIN ? ($('admShop').value || '') : SHOP;
+  ['this', 'last', 'year'].forEach(k => $({ this: 'rkThis', last: 'rkLast', year: 'rkYear' }[k]).classList.toggle('on', rkTab === k));
+  if (!sb || !sid) { box.innerHTML = ''; $('rkMy').textContent = ''; return; }
+  const yr = rkTab === 'year', ym = rkTab === 'last' ? addYm(curYm(), -1) : curYm();
+  let rows = [];
+  try { const { data, error } = await (yr ? sb.rpc('shop_annual_ranking', { p_shop: sid, p_year: Number(curYm().slice(0, 4)) }) : sb.rpc('shop_monthly_ranking', { p_shop: sid, p_month: ym + '-01' })); if (!error && data) rows = data; } catch (e) { rows = []; }
+  const me = rows.find(r => r.is_me);
+  $('rkMy').textContent = (yr ? curYm().slice(0, 4) + '年　' : ymTxt(ym) + '　') + (me ? 'あなたは ' + me.rank + ' 位（' + (yr ? me.points + ' ポイント' : r1(Number(me.best)) + ' 点') + '）' : (user && !ADMIN ? 'まだ記録がありません' : ''));
+  box.innerHTML = rows.length ? rows.slice(0, 50).map(r => '<div class="rk' + (r.is_me ? ' me' : '') + '"><div class="pos' + (r.rank == 1 ? ' p1' : '') + '">' + (r.rank == 1 ? '👑' : r.rank) + '</div><div class="nm">' + esc(r.nickname) + (r.vehicle ? '<small>🏍 ' + esc(r.vehicle) + '</small>' : '') + '</div><div class="pt">' + (yr ? r.points + ' P<small>' + r.months + 'か月参加' + (r.wins ? '・月間1位 ' + r.wins + '回' : '') + '</small>' : r1(Number(r.best)) + ' 点<small>' + r.attempts + '回挑戦</small>') + '</div></div>').join('') : '<div class="muted" style="padding:8px 0">まだ、記録がありません。</div>';
+  $('rkLogin').classList.toggle('hide', !!user || ADMIN);
+}
+$('rkThis').onclick = () => { rkTab = 'this'; loadRank(); };
+$('rkLast').onclick = () => { rkTab = 'last'; loadRank(); };
+$('rkYear').onclick = () => { rkTab = 'year'; loadRank(); };
+
+/* ---------- ショップ版：管理者（?admin=1）ショップの登録・ミッションの作成と公開 ---------- */
+const admMissions = {}; let admInited = false;
+const admMsg = t => { $('admMsg').textContent = t || ''; };
+async function admInit() {
+  if (!sb) { admMsg('読み込めませんでした。'); return; }
+  if (!user) { admMsg('下の「アカウント」から、管理者のメールアドレスでログインしてください。'); $('admBody').classList.add('hide'); return; }
+  let ok = false; try { const { data } = await sb.rpc('shop_is_admin'); ok = data === true; } catch (e) { ok = false; }
+  if (!ok) { admMsg('このアカウントは、管理者として登録されていません。'); $('admBody').classList.add('hide'); return; }
+  isAdmin = true; admMsg(''); $('admBody').classList.remove('hide');
+  if (!admInited) { admInited = true; admMonths(); await admShops(); }
+  admRefresh();
+}
+function admMonths() {
+  const c = curYm(); $('admMonth').innerHTML = [-1, 0, 1, 2, 3].map(k => addYm(c, k)).map(ym => '<option value="' + ym + '"' + (ym === addYm(c, 1) ? ' selected' : '') + '>' + ymTxt(ym) + (ym === c ? '（今月）' : ym === addYm(c, 1) ? '（来月）' : '') + '</option>').join('');
+}
+async function admShops(sel) {
+  let rows = []; try { const { data } = await sb.from('shops').select('id,name,active').order('created_at'); rows = data || []; } catch (e) { rows = []; }
+  let keep = sel || $('admShop').value; if (!keep) try { keep = localStorage.getItem('adm_shop') || ''; } catch (e) { keep = ''; }
+  $('admShop').innerHTML = rows.length ? rows.map(r => '<option value="' + esc(r.id) + '">' + esc(r.name) + '（' + esc(r.id) + '）</option>').join('') : '<option value="">（まだショップがありません。下の「＋ ショップを登録する」から）</option>';
+  if (keep && rows.some(r => r.id === keep)) $('admShop').value = keep;
+}
+async function admRefresh() {
+  const sid = $('admShop').value, ym = $('admMonth').value, url = location.origin + '/?shop=' + sid;
+  $('admLink').innerHTML = sid ? 'お客様に送るリンク：<br><b>' + esc(url) + '</b><br><button id="admCopyLink" class="btn" type="button" style="min-height:36px;font-size:14px;padding:0 12px;margin-top:6px">リンクをコピー</button>' : 'まず、ショップを登録してください。';
+  const cb = $('admCopyLink'); if (cb) cb.onclick = async () => { try { await navigator.clipboard.writeText(url); toast('リンクをコピーしました'); } catch (e) { toast('コピーできませんでした。長押しでコピーしてください。'); } };
+  if (!sid) { $('admState').textContent = ''; $('admReport').textContent = ''; loadRank(); return; }
+  let m = null; try { const { data } = await sb.from('shop_missions').select('*').eq('shop_id', sid).eq('month', ym + '-01').maybeSingle(); m = data || null; } catch (e) { m = null; }
+  admMissions[sid + ym] = m;
+  $('admState').textContent = m ? (m.published ? '✅ 公開中' : '📝 下書き（非公開）') + '　' + (m.title || '（名前なし）') + '　満点 ' + r1(Number(m.max_points)) + ' 点・挑戦 ' + m.max_attempts + ' 回' : '📭 この月のミッションは、まだありません。';
+  let rp = null; try { const { data } = await sb.rpc('shop_admin_report', { p_shop: sid, p_month: ym + '-01' }); rp = data; } catch (e) { rp = null; }
+  $('admReport').textContent = rp && rp.ok ? '📊 ' + ymTxt(ym) + 'のレポート：参加 ' + rp.participants + ' 人／挑戦 ' + rp.attempts + ' 回（ゴール ' + rp.finished + '・完走 ' + rp.completed + '）／このショップの参加登録 合計 ' + rp.members_total + ' 人' : '';
+  loadRank();
+}
+function admUse(c) { applyCourse(c); saveCourse(); try { localStorage.setItem('sampleTT_pace', pace); localStorage.setItem('sampleTT_paceBy', JSON.stringify(paceBy)); } catch (e) { /* noop */ } resetDayState('reset'); setupOpen = true; renderAll(); }
+$('admShop').onchange = () => { try { localStorage.setItem('adm_shop', $('admShop').value); } catch (e) { /* noop */ } admRefresh(); };
+$('admMonth').onchange = admRefresh;
+$('admLoad').onclick = () => {
+  const sid = $('admShop').value, ym = $('admMonth').value; if (!sid) { toast('ショップを選んでください。'); return; }
+  if (run) { toast('テスト走行の計測中は、開けません。'); return; }
+  const m = admMissions[sid + ym];
+  if ((anyReg() || course.goal) && !confirm('いま編集中のコースを、' + ymTxt(ym) + 'のミッション' + (m ? '' : '（まだないので、空のコース）') + 'に置き換えます。よろしいですか？')) return;
+  admUse(m ? m.course : null); $('admTitle').value = m ? (m.title || '') : ''; $('admMax').value = String(m ? m.max_attempts : 3); $('admPub').checked = !!(m && m.published);
+  toast(m ? '📥 ' + ymTxt(ym) + 'のミッションを開きました' : '空のコースにしました。下の「⚙ コースをつくる・変える」で作ってください');
+};
+$('admCopy').onclick = async () => {
+  const sid = $('admShop').value, pm = addYm($('admMonth').value, -1); if (!sid) { toast('ショップを選んでください。'); return; }
+  if (run) { toast('テスト走行の計測中は、できません。'); return; }
+  let m = null; try { const { data } = await sb.from('shop_missions').select('*').eq('shop_id', sid).eq('month', pm + '-01').maybeSingle(); m = data || null; } catch (e) { m = null; }
+  if (!m) { toast(ymTxt(pm) + 'のミッションがありません。'); return; }
+  if ((anyReg() || course.goal) && !confirm('いま編集中のコースを、' + ymTxt(pm) + 'のミッションのコピーに置き換えます。よろしいですか？')) return;
+  admUse(m.course); $('admTitle').value = ''; $('admMax').value = String(m.max_attempts); $('admPub').checked = false;
+  toast('📋 ' + ymTxt(pm) + 'のコースをコピーしました。直してから「💾 保存する」を押してください');
+};
+$('admSave').onclick = async () => {
+  const sid = $('admShop').value, ym = $('admMonth').value; if (!sid) { toast('ショップを選んでください。'); return; }
+  if (tapMode) { toast('地点の登録を終えてから、保存してください。'); return; }
+  if (!anyReg() && !course.goal) { toast('コースが空です。下の「⚙ コースをつくる・変える」で作ってください。'); return; }
+  const old = admMissions[sid + ym], pub = $('admPub').checked;
+  if (old && old.published && ym <= curYm() && !confirm('公開中のミッションを書きかえます。すでに走った人と、条件が変わることがあります。よろしいですか？')) return;
+  if (!old && !confirm(ymTxt(ym) + 'のミッションとして保存します' + (pub ? '（公開）' : '（下書き）') + '。よろしいですか？')) return;
+  const row = { shop_id: sid, month: ym + '-01', title: ($('admTitle').value || '').trim(), course: { ss: course.ss, view: course.view, historic: course.historic, goal: course.goal, pace, paceBy }, max_points: target(), max_attempts: Number($('admMax').value) || 3, published: pub, updated_at: new Date().toISOString() };
+  $('admSave').disabled = true; let err = null;
+  try { const { error } = await sb.from('shop_missions').upsert(row, { onConflict: 'shop_id,month' }); err = error || null; } catch (e) { err = e; }
+  $('admSave').disabled = false;
+  if (err) { toast('保存できませんでした：' + (err.message || '不明なエラー')); return; }
+  toast('💾 ' + ymTxt(ym) + 'のミッションを保存しました' + (pub ? '（公開）' : '（下書き）')); admRefresh();
+};
+$('admNewGo').onclick = async () => {
+  const id = ($('admNewId').value || '').trim().toLowerCase(), name = ($('admNewName').value || '').trim();
+  if (!/^[a-z0-9-]{2,30}$/.test(id)) { toast('記号は、半角の英小文字・数字・ハイフンで、2〜30文字にしてください。'); return; }
+  if (!name) { toast('ショップ名を入れてください。'); return; }
+  let err = null; try { const { error } = await sb.from('shops').insert({ id, name }); err = error || null; } catch (e) { err = e; }
+  if (err) { toast(err.code === '23505' ? 'その記号は、すでに使われています。' : '登録できませんでした：' + (err.message || '')); return; }
+  $('admNewId').value = ''; $('admNewName').value = ''; try { localStorage.setItem('adm_shop', id); } catch (e) { /* noop */ }
+  await admShops(id); admRefresh(); toast('🏍 ' + name + ' を登録しました');
+};
+
+/* ---------- 走行ムービー（端末の中だけで作る） ---------- */
+const TRK = 'gp_trk_', PMK = 'gp_pm_', EVK = 'gp_ev_', WIN = 'gp_win_', MB_JS = 'https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.js', MB_CSS = 'https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.css';
+const MW = 576, MH = 1024;
+const lsGet = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } };
+const trkLoad = d => { const a = lsGet(TRK + d); return Array.isArray(a) ? a : []; };
+/* ムービー用：その日のミッション開始〜ゴールボタンまでの軌跡だけを使う（開始・終了の記録がない日は、全体） */
+const trkSel = d => { const a = trkLoad(d), w = lsGet(WIN + d); if (!w || (!w.t0 && !w.t1)) return a; const b = a.filter(q => q[2] && (!w.t0 || q[2] >= w.t0) && (!w.t1 || q[2] <= w.t1)); return b.length >= 2 ? b : a; };
+function winMark(reset) { if (!day) return; const k = WIN + day.d; let w = lsGet(k); if (reset) w = { t0: Math.round(Date.now() / 1000) }; else if (!w || !w.t0) w = Object.assign({}, w || {}, { t0: Math.round(Date.now() / 1000) }); else return; lsSet(k, w); }
+function winEnd() { const k = WIN + day.d, w = lsGet(k) || {}; w.t1 = Math.round(Date.now() / 1000); lsSet(k, w); }
+let trkToday = null, mov = null, movBlob = null, movName = '', movPruned = false;
+function trkPrune() {
+  try {
+    const ds = new Set(); for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && (k.indexOf(TRK) === 0 || k.indexOf(PMK) === 0 || k.indexOf(EVK) === 0 || k.indexOf(WIN) === 0)) ds.add(k.slice(-10)); }
+    const keep = [...ds].sort().reverse().slice(0, 7); [...ds].forEach(d => { if (keep.indexOf(d) < 0) { localStorage.removeItem(TRK + d); localStorage.removeItem(PMK + d); localStorage.removeItem(EVK + d); localStorage.removeItem(WIN + d); } });
+  } catch (e) { /* noop */ }
+}
+function trkFlush() {
+  if (!trkToday || !trkToday.dirty) return;
+  if (lsSet(TRK + trkToday.d, trkToday.a)) trkToday.dirty = false;
+  trkToday.saved = Date.now(); if (!movPruned) { movPruned = true; trkPrune(); }
+}
+function trkAdd(la, lo) {
+  const d = today(); if (!trkToday || trkToday.d !== d) { trkFlush(); trkToday = { d, a: trkLoad(d), dirty: false, saved: 0 }; }
+  const a = trkToday.a, l = a[a.length - 1]; if (l && dist(l[0], l[1], la, lo) < 10) return;
+  a.push([Math.round(la * 1e5) / 1e5, Math.round(lo * 1e5) / 1e5, Math.round(Date.now() / 1000)]); trkToday.dirty = true;
+  if (a.length > 8000) trkToday.a = a.filter((_, i) => i % 2 === 0 || i === a.length - 1);
+  if (Date.now() - trkToday.saved > 15000) trkFlush();
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) trkFlush(); });
+window.addEventListener('pagehide', trkFlush);
+
+async function pmThumb(file) {
+  try { const bmp = await createImageBitmap(file); const m = Math.min(1, 320 / Math.max(bmp.width, bmp.height)); const c = document.createElement('canvas'); c.width = Math.round(bmp.width * m); c.height = Math.round(bmp.height * m); c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', 0.7); } catch (e) { return null; }
+}
+async function addPMark(file) {
+  if (!fix) return; const img = await pmThumb(file); if (!img) return;
+  const a = lsGet(PMK + day.d) || []; a.push({ lat: Math.round(fix.lat * 1e5) / 1e5, lon: Math.round(fix.lon * 1e5) / 1e5, t: Math.round(Date.now() / 1000), img, pts: PT }); lsSet(PMK + day.d, a.slice(-12));
+}
+function evAdd(k, label, pts) {
+  if (!fix) return; const a = lsGet(EVK + day.d) || []; a.push({ k, label, pts: r1(pts), lat: Math.round(fix.lat * 1e5) / 1e5, lon: Math.round(fix.lon * 1e5) / 1e5, t: Math.round(Date.now() / 1000) }); lsSet(EVK + day.d, a.slice(-60));
+}
+function movEv(name, pts) { let k = null; if (/^SS\d+ ゴール$/.test(name)) k = 'ss'; else if (/ 到着$/.test(name)) k = 'cp'; if (k) evAdd(k, name, pts); }
+
+function parseGpx(text) {
+  const x = new DOMParser().parseFromString(text, 'application/xml'); if (x.getElementsByTagName('parsererror').length) return null;
+  let ps = [...x.getElementsByTagName('trkpt')]; if (!ps.length) ps = [...x.getElementsByTagName('rtept')];
+  const out = []; ps.forEach(p => { const la = parseFloat(p.getAttribute('lat')), lo = parseFloat(p.getAttribute('lon')); if (!isFinite(la) || !isFinite(lo)) return; const te = p.getElementsByTagName('time')[0]; out.push([la, lo, te ? Math.round(Date.parse(te.textContent) / 1000) : NaN]); });
+  if (out.length < 2) return null;
+  const th = [out[0]]; out.forEach(q => { const l = th[th.length - 1]; if (dist(l[0], l[1], q[0], q[1]) >= 10) th.push(q); });
+  let a = th; while (a.length > 8000) a = a.filter((_, i) => i % 2 === 0);
+  const t0 = a.find(q => isFinite(q[2]));
+  const d = t0 ? new Date(t0[2] * 1000).toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' }) : today();
+  return { d, a: a.map(q => [Math.round(q[0] * 1e5) / 1e5, Math.round(q[1] * 1e5) / 1e5, isFinite(q[2]) ? q[2] : 0]) };
+}
+function prepTrack(a, trim) {
+  const p = a.map(x => [x[0], x[1]]); if (p.length < 2) return null;
+  const cum = [0]; for (let i = 1; i < p.length; i++) cum.push(cum[i - 1] + dist(p[i - 1][0], p[i - 1][1], p[i][0], p[i][1]));
+  const total = cum[cum.length - 1]; if (total < 300) return null;
+  let s = 0, e = total; if (trim && total > 1500) { s = 300; e = total - 300; }
+  const N = Math.min(600, Math.max(60, Math.round((e - s) / 25))), out = []; let j = 0;
+  for (let k = 0; k < N; k++) { const dd = s + (e - s) * k / (N - 1); while (j < cum.length - 2 && cum[j + 1] < dd) j++; const seg = cum[j + 1] - cum[j] || 1, f = Math.min(1, Math.max(0, (dd - cum[j]) / seg)); out.push([p[j][0] + (p[j + 1][0] - p[j][0]) * f, p[j][1] + (p[j + 1][1] - p[j][1]) * f]); }
+  const sm = out.map((q, i) => { if (i === 0 || i === N - 1) return q; let la = 0, lo = 0, n = 0; for (let d = -3; d <= 3; d++) { const r = out[i + d]; if (r) { la += r[0]; lo += r[1]; n++; } } return [la / n, lo / n]; });
+  return { pts: sm, len: e - s, total };
+}
+const brg = (a, b) => { const r = Math.PI / 180, y = Math.sin((b[1] - a[1]) * r) * Math.cos(b[0] * r), x = Math.cos(a[0] * r) * Math.sin(b[0] * r) - Math.sin(a[0] * r) * Math.cos(b[0] * r) * Math.cos((b[1] - a[1]) * r); return (Math.atan2(y, x) / r + 360) % 360; };
+const angDiff = (a, b) => ((b - a + 540) % 360) - 180;
+const ease = t => t < 0 ? 0 : t > 1 ? 1 : t * t * (3 - 2 * t);
+
+function movDays() {
+  const ds = new Set(); try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf(TRK) === 0) ds.add(k.slice(-10)); } } catch (e) { /* noop */ }
+  return [...ds].sort().reverse();
+}
+function movRefresh(sel) {
+  trkFlush(); const ds = movDays(), cur = sel || $('movDay').value;
+  $('movDay').innerHTML = ds.map(d => { const t = prepTrack(trkSel(d), false); return '<option value="' + d + '">' + d.slice(5).replace('-', '月') + '日（' + (t ? (t.total / 1000).toFixed(1) + ' km' : '短すぎます') + '）</option>'; }).join('');
+  if (ds.indexOf(cur) >= 0) $('movDay').value = cur;
+  $('movInfo').textContent = ds.length ? '' : 'まだ軌跡がありません。走るとき、アプリを開いたままにすると、位置が記録されます。（1日全体のログは、下の「GPXファイル」から取り込めます）';
+  $('movPlay').disabled = $('movRec').disabled = !ds.length;
+}
+const movMsg = t => { $('movMsg').textContent = t || ''; };
+function loadMapbox() {
+  if (window.mapboxgl) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = MB_CSS; document.head.appendChild(l);
+    const s = document.createElement('script'); s.src = MB_JS; s.onload = res; s.onerror = () => rej(new Error('mapbox')); document.head.appendChild(s);
+  });
+}
+function pickMime() { const c = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']; if (!window.MediaRecorder) return ''; for (const m of c) { try { if (MediaRecorder.isTypeSupported(m)) return m; } catch (e) { /* noop */ } } return ''; }
+function withDpr1(fn) {
+  const desc = Object.getOwnPropertyDescriptor(window, 'devicePixelRatio'); let changed = false;
+  try { Object.defineProperty(window, 'devicePixelRatio', { get: () => 1, configurable: true }); changed = true; } catch (e) { /* noop */ }
+  try { return fn(); } finally { if (changed) { try { if (desc) Object.defineProperty(window, 'devicePixelRatio', desc); else delete window.devicePixelRatio; } catch (e) { /* noop */ } } }
+}
+function rr(x, a, b, w, h, r) { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); }
+function drawOverlay(x, S) {
+  x.clearRect(0, 0, MW, MH); if (S.mapCv) { try { x.drawImage(S.mapCv, 0, 0, MW, MH); } catch (e) { x.fillStyle = '#233'; x.fillRect(0, 0, MW, MH); } } else { x.fillStyle = '#233'; x.fillRect(0, 0, MW, MH); }
+  let g = x.createLinearGradient(0, 0, 0, 200); g.addColorStop(0, 'rgba(0,0,0,.65)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, MW, 200);
+  g = x.createLinearGradient(0, MH - 260, 0, MH); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.75)'); x.fillStyle = g; x.fillRect(0, MH - 260, MW, 260);
+  x.textBaseline = 'alphabetic'; x.textAlign = 'left'; x.fillStyle = '#fff'; x.font = '900 40px sans-serif'; x.fillText('RALLY GP', 28, 62);
+  x.font = '700 24px sans-serif'; x.fillText(S.dateTxt, 28, 98);
+  x.textAlign = 'right'; x.font = '800 28px sans-serif'; x.fillText(S.nick, MW - 28, 62); x.font = '600 22px sans-serif'; if (S.veh) x.fillText('🏍 ' + S.veh, MW - 28, 96);
+  x.textAlign = 'left'; x.font = '900 64px sans-serif'; x.fillStyle = '#fff'; x.fillText(S.km.toFixed(1), 28, MH - 120); const kw = x.measureText(S.km.toFixed(1)).width; x.font = '700 26px sans-serif'; x.fillText('km', 28 + kw + 8, MH - 120);
+  if (S.pts != null) { x.textAlign = 'right'; x.font = '900 64px sans-serif'; x.fillText(String(r1(S.pts)), MW - 100, MH - 120); x.font = '700 26px sans-serif'; x.fillText('点', MW - 28, MH - 120); }
+  x.fillStyle = 'rgba(255,255,255,.35)'; rr(x, 28, MH - 86, MW - 56, 10, 5); x.fill(); x.fillStyle = '#ff4b3a'; rr(x, 28, MH - 86, Math.max(10, (MW - 56) * S.prog), 10, 5); x.fill();
+  x.textAlign = 'left'; x.fillStyle = 'rgba(255,255,255,.85)'; x.font = '600 16px sans-serif'; x.fillText('© Mapbox © OpenStreetMap', 28, MH - 24); x.textAlign = 'right'; x.fillText('rally-gp.vercel.app', MW - 28, MH - 24);
+  if (S.photo && S.photoA > 0) {
+    const ev = S.photo;
+    if (ev.k === 'photo' && ev.img) {
+      const im = ev.img, sc = Math.min(380 / im.width, 380 / im.height), w = im.width * sc, h = im.height * sc, cx = MW / 2, cy = MH * 0.42;
+      x.save(); x.globalAlpha = S.photoA; x.translate(cx, cy + (1 - S.photoA) * 40); x.rotate(-0.04); x.shadowColor = 'rgba(0,0,0,.5)'; x.shadowBlur = 24; x.fillStyle = '#fff'; x.fillRect(-w / 2 - 14, -h / 2 - 14, w + 28, h + 60); x.shadowBlur = 0; x.drawImage(im, -w / 2, -h / 2, w, h); x.fillStyle = '#223a6b'; x.font = '800 22px sans-serif'; x.textAlign = 'center'; x.fillText('📸 フォトポイント', 0, h / 2 + 38);
+      x.fillStyle = '#e8312a'; x.beginPath(); x.arc(w / 2 - 6, -h / 2 - 6, 46, 0, Math.PI * 2); x.fill(); x.fillStyle = '#fff'; x.font = '900 34px sans-serif'; x.fillText('+' + r1(ev.pts), w / 2 - 6, -h / 2 + 6); x.font = '800 18px sans-serif'; x.fillText('点', w / 2 - 6, -h / 2 + 28); x.restore();
+    } else if (ev.k !== 'photo') {
+      const icon = ev.k === 'ss' ? '🏁' : ev.k === 'yae' ? '🖐' : '📍', col = ev.k === 'yae' ? '#e0a100' : ev.k === 'ss' ? '#d63a3a' : '#1f8a4c';
+      x.save(); x.globalAlpha = S.photoA; x.translate(MW / 2, MH * 0.4 + (1 - S.photoA) * 30); x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 24; x.fillStyle = '#fff'; rr(x, -230, -110, 460, 220, 28); x.fill(); x.shadowBlur = 0;
+      x.textAlign = 'center'; x.font = '800 30px sans-serif'; x.fillStyle = '#223a6b'; let lb = icon + ' ' + (ev.label || ''); while (x.measureText(lb).width > 420 && x.font.indexOf('16px') < 0) { const m = /(\d+)px/.exec(x.font); x.font = '800 ' + (parseInt(m[1], 10) - 2) + 'px sans-serif'; } x.fillText(lb, 0, -40);
+      x.fillStyle = col; x.font = '900 88px sans-serif'; x.fillText('+' + r1(ev.pts), -20, 56); x.font = '800 32px sans-serif'; x.fillText('点', 128, 56); x.restore();
+    }
+  }
+  if (S.endA > 0) {
+    x.save(); x.globalAlpha = S.endA * 0.55; x.fillStyle = '#000'; x.fillRect(0, 0, MW, MH); x.globalAlpha = S.endA; x.textAlign = 'center'; x.fillStyle = '#fff';
+    x.font = '900 46px sans-serif'; x.fillText('RALLY GP', MW / 2, MH * 0.34); x.font = '700 28px sans-serif'; x.fillText(S.dateTxt, MW / 2, MH * 0.34 + 44);
+    x.font = '900 110px sans-serif'; x.fillText(S.kmTotal.toFixed(1) + ' km', MW / 2, MH * 0.5);
+    if (S.pts != null) { x.font = '900 72px sans-serif'; x.fillStyle = '#ffd95a'; x.fillText(String(r1(S.pts)) + ' 点', MW / 2, MH * 0.6); }
+    x.fillStyle = '#fff'; x.font = '800 32px sans-serif'; x.fillText(S.nick, MW / 2, MH * 0.7); if (S.veh) { x.font = '600 26px sans-serif'; x.fillText('🏍 ' + S.veh, MW / 2, MH * 0.7 + 40); }
+    x.restore();
+  }
+}
+async function runMovie(record) {
+  if (mov) return; const d = $('movDay').value; if (!d) return;
+  const tr = prepTrack(trkSel(d), $('movTrim').checked); if (!tr) { movMsg('軌跡が短すぎて、ムービーにできません（約300m以上走ってください）。'); return; }
+  const pts = tr.pts, n = pts.length;
+  const raw = trkSel(d), near = m => raw.some(q => dist(q[0], q[1], m.lat, m.lon) <= 300);
+  const evs = (lsGet(PMK + d) || []).map(m => ({ k: 'photo', pts: m.pts != null ? m.pts : PT, src: m.img, img: null, lat: m.lat, lon: m.lon, t: m.t })).concat((lsGet(EVK + d) || []).map(m => ({ k: m.k, label: m.label, pts: m.pts, lat: m.lat, lon: m.lon, t: m.t })))
+    .map(m => { if (!near(m)) return null; let bi = -1, bd = 1e9; pts.forEach((q, i) => { const dd = dist(q[0], q[1], m.lat, m.lon); if (dd < bd) { bd = dd; bi = i; } }); m.i = bi; return m; }).filter(Boolean).sort((a, b) => a.i - b.i || a.t - b.t);
+  const photos = evs;
+  const cv = $('movCv'), cx = cv.getContext('2d'); cv.width = MW; cv.height = MH; cv.classList.remove('hide'); setTimeout(() => { try { cv.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* noop */ } }, 150);
+  const S = { mapCv: null, dateTxt: d.slice(5).replace('-', '月') + '日', nick: nickVal() || 'ライダー', veh: ($('veh').value || '').trim(), km: 0, kmTotal: tr.len / 1000, pts: (d === day.d ? total() : null), prog: 0, photo: null, photoA: 0, endA: 0 };
+  mov = { stop: false }; $('movPlay').disabled = $('movRec').disabled = true; $('movStop').classList.remove('hide'); $('movOut').classList.add('hide'); movBlob = null;
+  let map = null, rec = null, chunks = [], mime = '';
+  const cleanup = () => { try { if (map) map.remove(); } catch (e) { /* noop */ } const b = $('movMapBox'); if (b) b.remove(); mov = null; $('movStop').classList.add('hide'); movRefresh(d); };
+  try {
+    movMsg('地図を読み込んでいます…（通信状況により、少し時間がかかります）');
+    await loadMapbox(); await Promise.all(photos.filter(p => p.src).map(p => new Promise(r => { const im = new Image(); im.onload = () => { p.img = im; r(); }; im.onerror = r; im.src = p.src; })));
+    const box = document.createElement('div'); box.id = 'movMapBox'; box.style.cssText = 'position:fixed;left:-10000px;top:0;width:' + MW + 'px;height:' + MH + 'px;pointer-events:none'; document.body.appendChild(box);
+    const zRun = tr.total < 20000 ? 14.8 : tr.total < 80000 ? 14 : 13.2;
+    mapboxgl.accessToken = MB_TOKEN;
+    map = withDpr1(() => new mapboxgl.Map({ container: box, style: 'mapbox://styles/mapbox/satellite-streets-v12', center: [pts[0][1], pts[0][0]], zoom: zRun - 3, pitch: 40, bearing: brg(pts[0], pts[Math.min(n - 1, 6)]), interactive: false, attributionControl: false, preserveDrawingBuffer: true, fadeDuration: 0 }));
+    await new Promise((res, rej) => { const to = setTimeout(() => rej(new Error('style')), 20000); map.on('style.load', () => { clearTimeout(to); res(); }); map.on('error', e => { if (e && e.error && /401|403/.test(String(e.error.status))) rej(new Error('auth')); }); });
+    map.addSource('mapbox-dem', { type: 'raster-dem', url: 'mapbox://mapbox.mapbox-terrain-dem-v1', tileSize: 512, maxzoom: 14 }); map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.4 });
+    map.addSource('trail', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [[pts[0][1], pts[0][0]], [pts[0][1], pts[0][0]]] } } });
+    map.addLayer({ id: 'trail-c', type: 'line', source: 'trail', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#fff', 'line-width': 9 } });
+    map.addLayer({ id: 'trail-l', type: 'line', source: 'trail', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#ff3b2f', 'line-width': 5.5 } });
+    map.addSource('head', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'Point', coordinates: [pts[0][1], pts[0][0]] } } });
+    map.addLayer({ id: 'head-c', type: 'circle', source: 'head', paint: { 'circle-radius': 9, 'circle-color': '#1768c8', 'circle-stroke-color': '#fff', 'circle-stroke-width': 3 } });
+    await new Promise(res => { const to = setTimeout(res, 8000); map.once('idle', () => { clearTimeout(to); res(); }); });
+    S.mapCv = map.getCanvas();
+    if (record) { mime = pickMime(); if (!mime) { movMsg('この端末では、動画の保存に対応していません。プレビューのみ再生します。'); record = false; } }
+    if (record) { const st = cv.captureStream(30); rec = new MediaRecorder(st, { mimeType: mime, videoBitsPerSecond: 4000000 }); rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); }; rec.start(500); }
+    movMsg(record ? '🎬 ムービーを作っています…そのままお待ちください（画面を閉じないでください）' : '▶ プレビュー再生中');
+    const mainSec = Math.min(30, Math.max(12, 10 + tr.len / 1000 * 0.6)), speed = (n - 1) / mainSec;
+    let phase = 'intro', ph0 = performance.now(), last = ph0, pos = 0, pi = 0, hold = 0, holdAll = 0, bear = map.getBearing();
+    await new Promise(done => {
+      const frame = ts => {
+        if (mov.stop) { done(); return; }
+        const dt = Math.min(0.1, (ts - last) / 1000); last = ts;
+        let zoom = zRun, pitch = 62, a = 0;
+        if (phase === 'intro') { const e = ease((ts - ph0) / 1500); zoom = zRun - 3 + 3 * e; pitch = 40 + 22 * e; if (e >= 1) phase = 'run'; }
+        else if (phase === 'run') {
+          if (hold > 0) { hold -= dt; const el = holdAll - hold; S.photoA = Math.min(1, el / 0.35, hold / 0.35 + 0.0001); if (hold <= 0) { S.photo = null; S.photoA = 0; } }
+          else { pos += speed * dt; if (pi < photos.length && pos >= photos[pi].i) { pos = photos[pi].i; S.photo = photos[pi]; hold = holdAll = photos[pi].k === 'photo' ? 2.4 : 1.8; pi++; } }
+          if (pos >= n - 1) { pos = n - 1; phase = 'end'; ph0 = ts; S.photo = null; S.photoA = 0; }
+        }
+        if (phase === 'end') { const e = ease((ts - ph0) / 2500); zoom = zRun - 1.8 * e; pitch = 62 - 20 * e; S.endA = ease((ts - ph0 - 600) / 1200); if (ts - ph0 > 4200) { done(); return; } }
+        const i = Math.min(n - 2, Math.floor(pos)), f = pos - i, p = [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f];
+        const tb = brg(pts[i], pts[Math.min(n - 1, i + 7)]); bear = (bear + angDiff(bear, tb) * (1 - Math.exp(-dt * 2.5)) + 360) % 360;
+        try { map.jumpTo({ center: [p[1], p[0]], zoom, pitch, bearing: phase === 'end' ? (bear + 25 * ease((ts - ph0) / 4200)) % 360 : bear }); const co = pts.slice(0, i + 1).map(q => [q[1], q[0]]); co.push([p[1], p[0]]); if (co.length < 2) co.push(co[0]); map.getSource('trail').setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: co } }); map.getSource('head').setData({ type: 'Feature', geometry: { type: 'Point', coordinates: [p[1], p[0]] } }); } catch (e) { /* noop */ }
+        S.km = pos * tr.len / (n - 1) / 1000; S.prog = pos / (n - 1);
+        drawOverlay(cx, S); requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    });
+    if (rec) {
+      await new Promise(r => { rec.onstop = r; try { rec.stop(); } catch (e) { r(); } });
+      const base = (rec.mimeType || mime).split(';')[0]; movBlob = new Blob(chunks, { type: base }); movName = 'rally-gp-shop_' + d.replace(/-/g, '') + (base.indexOf('mp4') >= 0 ? '.mp4' : '.webm');
+      if (movBlob.size > 1000) { const v = $('movVid'); try { URL.revokeObjectURL(v.src); } catch (e) { /* noop */ } v.src = URL.createObjectURL(movBlob); $('movOut').classList.remove('hide'); $('movCv').classList.add('hide'); setTimeout(() => { try { $('movOut').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* noop */ } }, 150); movMsg('✅ できました！ 下の「共有・保存」を押してください。'); } else movMsg('動画を作れませんでした。もう一度お試しください。');
+    } else movMsg(mov && mov.stop ? '停止しました。' : 'プレビューが終わりました。');
+  } catch (e) {
+    movMsg(e && e.message === 'auth' ? '地図を表示できませんでした（認証エラー）。' : '地図を読み込めませんでした。電波のよい所で、もう一度お試しください。');
+    try { if (rec && rec.state !== 'inactive') rec.stop(); } catch (e2) { /* noop */ }
+  }
+  cleanup();
+}
+$('movPlay').onclick = () => runMovie(false);
+$('movRec').onclick = () => { if (!premium) { showUpsell('走行ムービーの保存は、プレミアムの機能です。（プレビューは無料でお試しいただけます）'); return; } runMovie(true); };
+$('movStop').onclick = () => { if (mov) mov.stop = true; };
+$('movShare').onclick = async () => {
+  if (!movBlob) return; const f = new File([movBlob], movName, { type: movBlob.type });
+  try { if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: 'Rally GP', text: '#RallyGP' }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(movBlob); a.download = movName; document.body.appendChild(a); a.click(); a.remove();
+};
+$('movGpx').onchange = async ev => {
+  const f = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (!f) return;
+  if (f.size > 20 * 1024 * 1024) { movMsg('ファイルが大きすぎます（20MBまで）。'); return; }
+  let g = null; try { g = parseGpx(await f.text()); } catch (e) { g = null; }
+  if (!g) { movMsg('GPXファイルを読み取れませんでした。'); return; }
+  if (trkLoad(g.d).length && !confirm(g.d.slice(5).replace('-', '月') + '日の軌跡は、すでにあります。GPXの内容で置き換えますか？')) return;
+  if (!lsSet(TRK + g.d, g.a)) { movMsg('保存できませんでした。ファイルが大きすぎる可能性があります。'); return; }
+  movRefresh(g.d); movMsg('✅ ' + g.d.slice(5).replace('-', '月') + '日の軌跡を取り込みました（' + g.a.length + '点）。');
+};
+$('movCard').addEventListener('toggle', () => { if ($('movCard').open) movRefresh(); });
+
+/* ---------- 起動 ---------- */
+loadDay(); initMap(); shopBoot(); renderAcct(); renderAll(); startWatch(); loadShop();
+if (ADMIN && !anyReg() && !course.goal) setTimeout(() => toast('ショップと月を選んで「この月のミッションを開く」を押すか、下の「コースをつくる」で新しく作りましょう'), 600);
+})();
+</script>
+</body></html>
